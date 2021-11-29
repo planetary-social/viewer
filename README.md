@@ -4,7 +4,7 @@ Http viewer of ssb data
 
 ## install
 ```
-npm install -S @planetary/viewer
+npm install -S @planetary-ssb/viewer
 ```
 
 ## use
