@@ -2,6 +2,12 @@
 
 Http viewer of ssb data
 
+## install
+```
+$ npm install -S @planetary/viewer
+```
+
+## use
 This exports a function that starts a server. It should be used as a dependency of another module.
 
 ```js
