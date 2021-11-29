@@ -9,6 +9,9 @@ var sbot = SecretStack({ caps })
     .use(require('ssb-db2')
     // ...
 
-require('planetary
+var viewer = require('@planetary-ssb/viewer')
+
+// (sbot, port)
+var server = viewer(sbot, 8888)  // now http server is started
 ```
 
