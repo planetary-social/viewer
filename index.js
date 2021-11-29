@@ -2,7 +2,7 @@ const fastify = require('fastify')({
   logger: true
 })
 
-module.exports = function startServer () {
+module.exports = function startServer (sbot) {
     // Declare a route
     fastify.get('/', (request, reply) => {
         reply.send({ hello: 'world' })
