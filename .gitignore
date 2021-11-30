@@ -90,4 +90,5 @@ node_modules
 
 bundle.js
 
-test/db/db2/
+test/db/
+
