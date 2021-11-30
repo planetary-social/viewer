@@ -3,13 +3,24 @@
   "description": "Http viewer of ssb data",
   "version": "0.0.0",
   "main": "index.js",
-  "devDependencies": {},
+  "devDependencies": {
+    "isomorphic-fetch": "^3.0.0",
+    "secret-stack": "^6.4.0",
+    "ssb-blobs": "^2.0.1",
+    "ssb-conn": "^6.0.1",
+    "ssb-db2": "^2.8.1",
+    "ssb-ebt": "^8.1.0",
+    "ssb-friends": "^5.1.0",
+    "ssb-keys": "^8.2.0",
+    "ssb-replication-scheduler": "^1.0.1",
+    "tape": "^5.3.2"
+  },
   "dependencies": {
     "fastify": "^3.24.1"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "postversion": "git push && git push --tags && npm publish"
+    "postversion": "git push && git push --tags && npm publish",
+    "test": "tape test/*.js | tap-spec"
   },
   "repository": {
     "type": "git",
