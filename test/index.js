@@ -65,7 +65,11 @@ test('get a message', t => {
                 })
             }
 
-            t.end()
+            res.text().then(text => {
+                console.log('text', text)
+                t.end()
+            })
+
         })
         .catch(err => {
             t.fail(err)

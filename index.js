@@ -15,21 +15,30 @@ module.exports = function startServer (sbot, port) {
             id = id.join('')
             console.log('aaaaaa', id)
 
+
             sbot.db.query(
                 and(
                     type("test"), 
                     key(id)
                 ),
-                // toPromise()
-                toCallback((err, msgs) => {
-                    console.log('**in here**', err, msgs)
-                    if (err) {
-                        console.log('errrrrrrrrr', err)
-                        return res.send(createError(500))
-                    }
-                    res.send(msgs)
-                })
+                toPromise()
             )
+                .then(res => console.log('res', res))
+
+
+            // sbot.db.query(
+            //     key(id),
+            //     // toPromise()
+            //     toCallback((err, msgs) => {
+            //         console.log('**in here**', err, msgs)
+            //         if (err) {
+            //             console.log('errrrrrrrrr', err)
+            //             return res.end(createError(500))
+            //         }
+            //         res.writeHead(200, { 'Content-Type': 'application/json' });
+            //         return res.end(JSON.stringify(msgs));
+            //     })
+            // )
                     // .then(msgs => {
                     //     console.log('****res', msgs)
                     //     res.send(msgs)
