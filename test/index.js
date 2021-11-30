@@ -2,8 +2,8 @@ require('isomorphic-fetch');
 var test = require('tape')
 const SecretStack = require('secret-stack')
 const ssbKeys = require('ssb-keys')
-const caps = require('./caps')
 var Server = require('../')
+const caps = require('./caps.json')
 var path = require('path')
 
 const PORT = 8888
@@ -27,14 +27,24 @@ const sbot = SecretStack({ caps })
         keys: ssbKeys.loadOrCreateSync(path.join(DB_PATH, 'secret'))
     })
 
-
+var key
 var server
-test('server', t => {
+test('setup', t => {
     server = Server(sbot, PORT)
+    var content = { type: 'test', text: 'woooo' }
+    sbot.db.publish(content, (err, res) => {
+        console.log('done publishing', err, res)
+        if (err) t.fail(err.toString())
+        key = res.key
+        t.end()
+    })
+})
+
+test('server', t => {
     fetch(BASE_URL + '/')
         .then(res => {
             res.text().then(text => {
-                t.equal(text[0], '@', 'should return the servers id')
+                t.equal(text[0], '@', "should return the server's id")
                 t.end()
             })
         })
@@ -44,12 +54,31 @@ test('server', t => {
         })
 })
 
-test('all done', t => {
-    server.close()
-        .then(() => {
-            sbot.close((err) => {
-                if (err) t.fail(err)
-                t.end()
-            })
+test('get a message', t => {
+    fetch(BASE_URL + '/' + key)
+        .then(res => {
+            if (!res.ok) {
+                return res.text().then(text => {
+                    t.fail(text)
+                    console.log('**aaaa text**', text)
+                    t.end()
+                })
+            }
+
+            t.end()
         })
+        .catch(err => {
+            t.fail(err)
+            t.end()
+        })
+})
+
+test('all done', t => {
+    server.close(err => {
+        if (err) t.fail(err)
+        sbot.close((err) => {
+            if (err) t.fail(err)
+            t.end()
+        })
+    })
 })
