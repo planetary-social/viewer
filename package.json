@@ -4,6 +4,7 @@
   "version": "0.0.2",
   "main": "index.js",
   "devDependencies": {
+    "after": "^0.8.2",
     "isomorphic-fetch": "^3.0.0",
     "secret-stack": "^6.4.0",
     "ssb-blobs": "^2.0.1",
@@ -17,7 +18,10 @@
   },
   "dependencies": {
     "fastify": "^3.24.1",
-    "http-errors": "^1.8.1"
+    "http-errors": "^1.8.1",
+    "pull-stream": "^3.6.14",
+    "pull-stream-to-stream": "^2.0.0",
+    "ssb-threads": "^9.2.0"
   },
   "scripts": {
     "postversion": "git push && git push --tags && npm publish",
