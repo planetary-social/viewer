@@ -19,5 +19,7 @@ var viewer = require('@planetary-ssb/viewer')
 
 // (sbot, port)
 var server = viewer(sbot, 8888)  // now http server is started
+
+server.close(err => console.log('server closed', err))
 ```
 
