@@ -33,7 +33,7 @@ test('setup', t => {
     server = Server(sbot, PORT)
     var content = { type: 'test', text: 'woooo' }
     sbot.db.publish(content, (err, res) => {
-        console.log('done publishing', err, res)
+        // console.log('done publishing', err, res)
         if (err) t.fail(err.toString())
         key = res.key
         t.end()
@@ -60,16 +60,14 @@ test('get a message', t => {
             if (!res.ok) {
                 return res.text().then(text => {
                     t.fail(text)
-                    console.log('**aaaa text**', text)
                     t.end()
                 })
             }
 
-            res.text().then(text => {
-                console.log('text', text)
+            res.json().then(json => {
+                t.equal(json[0].key, key, 'should return the right message')
                 t.end()
             })
-
         })
         .catch(err => {
             t.fail(err)
