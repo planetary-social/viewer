@@ -69,16 +69,18 @@ test('server', t => {
 })
 
 test('get a message', t => {
-    fetch(BASE_URL + '/' + msgKey)
+    fetch(BASE_URL + '/' + encodeURIComponent(msgKey))
         .then(res => {
             if (!res.ok) {
                 return res.text().then(text => {
+                    console.log('**failure text**', text)
                     t.fail(text)
                     t.end()
                 })
             }
 
             res.json().then(json => {
+                // console.log('**json**', json)
                 t.equal(json[0].key, msgKey,
                     'should return the right message')
                 t.end()

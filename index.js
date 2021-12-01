@@ -19,6 +19,7 @@ module.exports = function startServer (sbot, port, cb) {
     fastify.get('/%:id', (req, res) => {
         var { id } = req.params
         id = '%' + id
+        id = decodeURIComponent(id)
 
         S(
             sbot.threads.thread({
