@@ -6,10 +6,17 @@ var Server = require('../')
 const caps = require('./caps.json')
 var path = require('path')
 var after = require('after')
+// var ssc = require('@nichoth/ssc')
+const validate = require('ssb-validate');
+var S = require('pull-stream')
+const pullAsync = require('pull-async');
+
+
 
 const PORT = 8888
 const BASE_URL = 'http://localhost:' + PORT
 const DB_PATH = process.env.DB_PATH || (__dirname + '/db')
+const SERVER_KEYS = ssbKeys.loadOrCreateSync(path.join(DB_PATH, 'secret'))
 
 const sbot = SecretStack({ caps })
     .use(require('ssb-db2'))
@@ -26,7 +33,7 @@ const sbot = SecretStack({ caps })
             hops: 2
         },
         // the server has an identity
-        keys: ssbKeys.loadOrCreateSync(path.join(DB_PATH, 'secret'))
+        keys: SERVER_KEYS
     })
 
 var msgKey
@@ -43,7 +50,7 @@ test('setup', t => {
         next(null)
     })
 
-    var content = { type: 'test', text: 'woooo' }
+    var content = { type: 'test', text: 'woooo 1' }
     sbot.db.publish(content, (err, res) => {
         if (err) {
             t.fail(err.toString())
@@ -78,18 +85,46 @@ test('get a message', t => {
                     t.end()
                 })
             }
-
-            res.json().then(json => {
-                // console.log('**json**', json)
-                t.equal(json[0].key, msgKey,
-                    'should return the right message')
-                t.end()
-            })
+            return res.json()
+        })
+        .then(({ messages }) => {
+            t.equal(messages[0].key, msgKey,
+                'should return the right message')
+            t.end()
         })
         .catch(err => {
             t.fail(err)
             t.end()
         })
+})
+
+test('get a thread', t => {
+    // var newKey
+    var content = { type: 'test', text: 'woooo 2', root: msgKey }
+
+    sbot.db.publish(content, (err, res) => {
+        if (err) {
+            t.fail(err.toString())
+            return t.end()
+        }
+
+        // we are requesting the 'root' message here
+        // how to get a thread when you are given a child message?
+        fetch(BASE_URL + '/' + encodeURIComponent(msgKey))
+            .then(_res => _res.json())
+            .then(({ messages, full }) => {
+                t.equal(full, true, 'should have the full thread')
+                t.equal(messages.length, 2,
+                    'should return all the messages in the thread')
+                t.equal(messages[0].key, msgKey,
+                    'should return messages in the right order')
+                t.end()
+            })
+            .catch(err => {
+                t.fail(err)
+                t.end()
+            })
+    })
 })
 
 test('all done', t => {

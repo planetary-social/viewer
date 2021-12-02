@@ -20,6 +20,7 @@ module.exports = function startServer (sbot, port, cb) {
         var { id } = req.params
         id = '%' + id
         id = decodeURIComponent(id)
+        // console.log('**id*****', id)
 
         S(
             sbot.threads.thread({
@@ -28,23 +29,10 @@ module.exports = function startServer (sbot, port, cb) {
                 reverse: true, // threads sorted from most recent to least recent
                 threadMaxSize: 3, // at most 3 messages in each thread
             }),
-            S.collect(thread => {
+            S.collect((err, [thread]) => {
                 // if thread is null, get the message and return it
-                if (thread === null) {
-                    return sbot.db.query(
-                        where(
-                            key(id)
-                        ),
-                        toCallback((err, msg) => {
-                            if (err) {
-                                console.log('errrrrrrrrr', err)
-                                return res.send(createError(500))
-                            }
-                            res.send(msg)
-                        })
-                    )
-                }
-
+                if (err) return console.log('rrrrrrr', err)
+                // console.log('**thread**', thread)
                 res.send(thread)
             })
         )
