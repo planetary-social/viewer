@@ -36,7 +36,6 @@ module.exports = function startServer (sbot, port, cb) {
                 res.send(thread)
             })
         )
-
     })
 
     // Run the server!

@@ -28,8 +28,13 @@ var sbot = SecretStack({ caps })
 // (sbot, port)
 // `sbot` is required
 // `port` defaults to 8888
-var server = viewer(sbot, 8888)  // now http server is started
+viewer(sbot, 8888, (err, server) => {
+    // now http server is started
 
-// sometime in the future...
-server.close(err => console.log('server closed', err))
+    if (err) throw err
+
+    // sometime in the future...
+    server.close(err => console.log('server closed', err))
+})
+
 ```
