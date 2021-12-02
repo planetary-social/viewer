@@ -11,8 +11,6 @@ const validate = require('ssb-validate');
 var S = require('pull-stream')
 const pullAsync = require('pull-async');
 
-
-
 const PORT = 8888
 const BASE_URL = 'http://localhost:' + PORT
 const DB_PATH = process.env.DB_PATH || (__dirname + '/db')
@@ -103,7 +101,7 @@ test('get a thread', t => {
     // var newKey
     var content = { type: 'test', text: 'woooo 2', root: msgKey }
 
-    sbot.db.publish(content, (err, res) => {
+    sbot.db.publish(content, (err) => {
         if (err) {
             t.fail(err.toString())
             return t.end()
