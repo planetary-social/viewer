@@ -8,12 +8,12 @@ npm install -S @planetary-ssb/viewer
 ```
 
 ## use
-This exports a function that starts a server. It should be used as a dependency of another module.
+This exports a function that creates server. It should be used as a dependency of another module. The returned server is an instance of [fastify](https://www.fastify.io/).
 
 ```js
 const SecretStack = require('secret-stack')
 const ssbKeys = require('ssb-keys')
-var viewer = require('@planetary-ssb/viewer')
+var Viewer = require('@planetary-ssb/viewer')
 const caps = require('./caps.json')
 
 var sbot = SecretStack({ caps })
@@ -28,12 +28,16 @@ var sbot = SecretStack({ caps })
 // (sbot, port)
 // `sbot` is required
 // `port` defaults to 8888
-viewer(sbot, 8888, (err, server) => {
-    // now http server is started
+var viewer = Viewer(sbot)
 
-    if (err) throw err
+// viewer is an instance of `fastify`
+// (port, ip, cb)
+viewer.listen(8888, '0.0.0.0', (err, address) => {
+    if (err) t.fail(err)
+    console.log(`Server is now listening on ${address}`)
+    next(null)
 
     // sometime in the future...
-    server.close(err => console.log('server closed', err))
+    viewer.close(err => console.log('server closed', err))
 })
 ```
