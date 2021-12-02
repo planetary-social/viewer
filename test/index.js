@@ -88,6 +88,7 @@ test('get a message', t => {
             return res.json()
         })
         .then(({ messages }) => {
+            t.equal(messages.length, 1, 'should return a single message')
             t.equal(messages[0].key, msgKey,
                 'should return the right message')
             t.end()
