@@ -36,5 +36,4 @@ viewer(sbot, 8888, (err, server) => {
     // sometime in the future...
     server.close(err => console.log('server closed', err))
 })
-
 ```

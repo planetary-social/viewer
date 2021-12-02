@@ -97,15 +97,18 @@ test('get a message', t => {
         })
 })
 
+var childKey
 test('get a thread', t => {
     // var newKey
     var content = { type: 'test', text: 'woooo 2', root: msgKey }
 
-    sbot.db.publish(content, (err) => {
+    sbot.db.publish(content, (err, res) => {
         if (err) {
             t.fail(err.toString())
             return t.end()
         }
+
+        childKey = res.key
 
         // we are requesting the 'root' message here
         // how to get a thread when you are given a child message?
@@ -124,6 +127,22 @@ test('get a thread', t => {
                 t.end()
             })
     })
+})
+
+test('get a thread given a child message', t => {
+    fetch(BASE_URL + '/' + encodeURIComponent(childKey))
+        .then(res => res.json())
+        .then(({ messages }) => {
+            console.log('thread res', JSON.stringify(messages, null, 2))
+            t.equal(messages[0].key, msgKey,
+                'should send back the thread starting with the root')
+            t.end()
+        })
+        .catch(err => {
+            console.log('oh no', err)
+            t.fail(err)
+            t.end()
+        })
 })
 
 test('all done', t => {
