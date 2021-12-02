@@ -39,12 +39,12 @@ var server
 test('setup', t => {
     var next = after(2, () => t.end())
 
-    Server(sbot, PORT, (err, _server) => {
-        if (err) {
-            t.fail(err.toString())
-            return next(err)
-        }
-        server = _server
+    server = Server(sbot)
+
+    // Run the server!
+    server.listen(8888, '0.0.0.0', (err, address) => {
+        if (err) t.fail(err)
+        console.log(`Server is now listening on ${address}`)
         next(null)
     })
 

@@ -2,12 +2,12 @@ var createError = require('http-errors')
 const fastify = require('fastify')({
   logger: true
 })
-const {and, where, type, key, toCallback} = require('ssb-db2/operators')
+// const {and, where, type, key, toCallback} = require('ssb-db2/operators')
 var S = require('pull-stream')
-var toStream = require('pull-stream-to-stream')
+// var toStream = require('pull-stream-to-stream')
 
 
-module.exports = function startServer (sbot, port, cb) {
+module.exports = function startServer (sbot) {
     fastify.get('/', (_, res) => {
         res.send(sbot.config.keys.id)
     })
@@ -38,10 +38,5 @@ module.exports = function startServer (sbot, port, cb) {
         )
     })
 
-    // Run the server!
-    fastify.listen(port || 8888, '0.0.0.0', (err, address) => {
-        if (err) return cb(err)
-        console.log(`Server is now listening on ${address}`)
-        cb(null, fastify)
-    })
+    return fastify
 }
