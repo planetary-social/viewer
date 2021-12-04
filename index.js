@@ -12,15 +12,14 @@ module.exports = function startServer (sbot) {
         res.send(sbot.config.keys.id)
     })
 
-    fastify.get('/healthz', (_, res) => {
-        res.send('ok')
-    })
-
     fastify.get('/%:id', (req, res) => {
         var { id } = req.params
         id = '%' + id
         id = decodeURIComponent(id)
-        // console.log('**id*****', id)
+
+        // get the message in question
+        // so we can look for the `root` property and
+        // see if there is a thread for this
 
         S(
             sbot.threads.thread({
@@ -30,9 +29,7 @@ module.exports = function startServer (sbot) {
                 threadMaxSize: 3, // at most 3 messages in each thread
             }),
             S.collect((err, [thread]) => {
-                // if thread is null, get the message and return it
                 if (err) return console.log('rrrrrrr', err)
-                // console.log('**thread**', thread)
                 res.send(thread)
             })
         )
