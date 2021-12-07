@@ -39,26 +39,13 @@ module.exports = function startServer (sbot) {
         sbot.db.get(id, (err, msg) => {
             if (err) return res.send(createError.InternalServerError())
 
-            var rootId = msg.content.root || id
+            var rootId = (msg.content && msg.content.root) || id
 
             getThread(sbot, rootId, (err, msgs) => {
                 if (err) res.send(createError.InternalServerError())
                 res.send(msgs)
             })
         })
-
-        // S(
-        //     sbot.threads.thread({
-        //         root: rootId,
-        //         allowlist: ['test'],
-        //         reverse: true, // threads sorted from most recent to least recent
-        //         threadMaxSize: 3, // at most 3 messages in each thread
-        //     }),
-        //     S.collect((err, [thread]) => {
-        //         if (err) return console.log('rrrrrrr', err)
-        //         res.send(thread)
-        //     })
-        // )
     })
 
     return fastify
