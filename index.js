@@ -6,6 +6,21 @@ const fastify = require('fastify')({
 var S = require('pull-stream')
 // var toStream = require('pull-stream-to-stream')
 
+function getThread(sbot, rootId, cb) {
+    S(
+        sbot.threads.thread({
+            root: rootId,
+            // @TODO
+            allowlist: ['test'],
+            reverse: true, // threads sorted from most recent to least recent
+            threadMaxSize: 3, // at most 3 messages in each thread
+        }),
+        S.collect((err, [thread]) => {
+            if (err) return cb(err)
+            cb(null, thread)
+        })
+    )
+}
 
 module.exports = function startServer (sbot) {
     fastify.get('/', (_, res) => {
@@ -21,18 +36,29 @@ module.exports = function startServer (sbot) {
         // so we can look for the `root` property and
         // see if there is a thread for this
 
-        S(
-            sbot.threads.thread({
-                root: id,
-                allowlist: ['test'],
-                reverse: true, // threads sorted from most recent to least recent
-                threadMaxSize: 3, // at most 3 messages in each thread
-            }),
-            S.collect((err, [thread]) => {
-                if (err) return console.log('rrrrrrr', err)
-                res.send(thread)
+        sbot.db.get(id, (err, msg) => {
+            if (err) return res.send(createError.InternalServerError())
+
+            var rootId = msg.content.root || id
+
+            getThread(sbot, rootId, (err, msgs) => {
+                if (err) res.send(createError.InternalServerError())
+                res.send(msgs)
             })
-        )
+        })
+
+        // S(
+        //     sbot.threads.thread({
+        //         root: rootId,
+        //         allowlist: ['test'],
+        //         reverse: true, // threads sorted from most recent to least recent
+        //         threadMaxSize: 3, // at most 3 messages in each thread
+        //     }),
+        //     S.collect((err, [thread]) => {
+        //         if (err) return console.log('rrrrrrr', err)
+        //         res.send(thread)
+        //     })
+        // )
     })
 
     return fastify

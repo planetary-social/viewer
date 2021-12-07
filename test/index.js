@@ -8,8 +8,8 @@ var path = require('path')
 var after = require('after')
 // var ssc = require('@nichoth/ssc')
 const validate = require('ssb-validate');
-var S = require('pull-stream')
-const pullAsync = require('pull-async');
+// var S = require('pull-stream')
+// const pullAsync = require('pull-async');
 
 const PORT = 8888
 const BASE_URL = 'http://localhost:' + PORT
@@ -133,7 +133,7 @@ test('get a thread given a child message', t => {
     fetch(BASE_URL + '/' + encodeURIComponent(childKey))
         .then(res => res.json())
         .then(({ messages }) => {
-            console.log('thread res', JSON.stringify(messages, null, 2))
+            // console.log('thread res', JSON.stringify(messages, null, 2))
             t.equal(messages[0].key, msgKey,
                 'should send back the thread starting with the root')
             t.end()
@@ -144,6 +144,13 @@ test('get a thread given a child message', t => {
             t.end()
         })
 })
+
+// test('get a feed', t => {
+//     // console.log('sbot config', sbot.config.keys)
+//     // t.end()
+//     fetch(BASE_URL + '/' + encodeURIComponent(sbot.config.keys.id))
+//     t.end()
+// })
 
 test('all done', t => {
     server.close(err => {
