@@ -6,8 +6,9 @@ var Server = require('../')
 const caps = require('./caps.json')
 var path = require('path')
 var after = require('after')
+var parallel = require('run-parallel')
 // var ssc = require('@nichoth/ssc')
-const validate = require('ssb-validate');
+// const validate = require('ssb-validate');
 // var S = require('pull-stream')
 // const pullAsync = require('pull-async');
 
@@ -37,7 +38,7 @@ const sbot = SecretStack({ caps })
 var msgKey
 var server
 test('setup', t => {
-    var next = after(2, () => t.end())
+    var next = after(3, () => t.end())
 
     server = Server(sbot)
 
@@ -45,6 +46,12 @@ test('setup', t => {
     server.listen(8888, '0.0.0.0', (err, address) => {
         if (err) t.fail(err)
         console.log(`Server is now listening on ${address}`)
+        next(null)
+    })
+
+    // del the existing msgs
+    sbot.db.deleteFeed(sbot.config.keys.id, (err, _) => {
+        if (err) return cb(err)
         next(null)
     })
 
@@ -145,12 +152,22 @@ test('get a thread given a child message', t => {
         })
 })
 
-// test('get a feed', t => {
-//     // console.log('sbot config', sbot.config.keys)
-//     // t.end()
-//     fetch(BASE_URL + '/' + encodeURIComponent(sbot.config.keys.id))
-//     t.end()
-// })
+test('get a feed', t => {
+    fetch(BASE_URL + '/feed/' + encodeURIComponent(sbot.config.keys.id))
+        .then(res => {
+            if (!res.ok) return res.text()
+            return res.json()
+        })
+        .then(res => {
+            t.equal(res[0].value.author, sbot.config.keys.id,
+                'should return the right feed')
+            t.end()
+        })
+        .catch(err => {
+            t.fail(err)
+            t.end()
+        })
+})
 
 test('all done', t => {
     server.close(err => {

@@ -1,10 +1,9 @@
+const { where, and, type, author, toCallback } = require('ssb-db2/operators')
 var createError = require('http-errors')
 const fastify = require('fastify')({
   logger: true
 })
-// const {and, where, type, key, toCallback} = require('ssb-db2/operators')
 var S = require('pull-stream')
-// var toStream = require('pull-stream-to-stream')
 
 function getThread(sbot, rootId, cb) {
     S(
@@ -46,6 +45,27 @@ module.exports = function startServer (sbot) {
                 res.send(msgs)
             })
         })
+    })
+
+    fastify.get('/feed/:feedId', (req, res) => {
+        var { feedId } = req.params
+        feedId = decodeURIComponent(feedId)
+
+        sbot.db.query(
+            where(
+                and(
+                    type('test'),
+                    author(feedId)
+                )
+            ),
+            toCallback((err, msgs) => {
+                if (err) return res.send(createError.InternalServerError())
+                console.log('There are ' + msgs.length +
+                    ' messages of type "post" from ' + feedId)
+                res.send(msgs)
+            })
+        )
+
     })
 
     return fastify
