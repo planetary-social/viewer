@@ -26,6 +26,8 @@ module.exports = function startServer (sbot) {
         res.send(sbot.config.keys.id)
     })
 
+    fastify.register(require('fastify-cors'), {})
+
     fastify.get('/%:id', (req, res) => {
         var { id } = req.params
         id = '%' + id
