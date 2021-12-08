@@ -6,7 +6,7 @@ var Server = require('../')
 const caps = require('./caps.json')
 var path = require('path')
 var after = require('after')
-var parallel = require('run-parallel')
+// var parallel = require('run-parallel')
 // var ssc = require('@nichoth/ssc')
 // const validate = require('ssb-validate');
 // var S = require('pull-stream')
@@ -19,6 +19,7 @@ const SERVER_KEYS = ssbKeys.loadOrCreateSync(path.join(DB_PATH, 'secret'))
 
 const sbot = SecretStack({ caps })
     .use(require('ssb-db2'))
+    .use(require('ssb-db2/about-self'))
     .use(require('ssb-db2/compat')) // include all compatibility plugins
     .use(require('ssb-friends'))
     .use(require('ssb-conn'))

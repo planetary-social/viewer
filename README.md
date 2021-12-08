@@ -1,6 +1,8 @@
 # planetary viewer
 
-Http viewer of ssb data
+A backend component
+
+This servers data via http from a given sbot
 
 ## install
 ```
@@ -25,9 +27,8 @@ var sbot = SecretStack({ caps })
         keys: ssbKeys.loadOrCreateSync(__dirname + '/secret'))
     })
     
-// (sbot, port)
+// (sbot)
 // `sbot` is required
-// `port` defaults to 8888
 var viewer = Viewer(sbot)
 
 // viewer is an instance of `fastify`

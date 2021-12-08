@@ -90,3 +90,4 @@ module.exports = function startServer (sbot) {
 
     return fastify
 }
+
