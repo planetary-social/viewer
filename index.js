@@ -1,4 +1,4 @@
-const { where, and, type, author, toCallback } = require('ssb-db2/operators')
+// const { where, and, type, author, toCallback } = require('ssb-db2/operators')
 var createError = require('http-errors')
 const fastify = require('fastify')({
   logger: true
@@ -35,8 +35,13 @@ module.exports = function startServer (sbot) {
         // so we can look for the `root` property and
         // see if there is a thread for this
 
+        console.log('*****id*****', id)
+
         sbot.db.get(id, (err, msg) => {
-            if (err) return res.send(createError.InternalServerError())
+            if (err) {
+                console.log('errrrr', err)
+                return res.send(createError.InternalServerError())
+            }
 
             var rootId = (msg.content && msg.content.root) || id
 
@@ -47,46 +52,46 @@ module.exports = function startServer (sbot) {
         })
     })
 
-    fastify.post('/feed', (req, res) => {
-        var { feedId } = req.body
-        sbot.db.query(
-            where(
-                and(
-                    type('test'),
-                    author(feedId)
-                )
-            ),
-            toCallback((err, msgs) => {
-                if (err) return res.send(createError.InternalServerError())
-                console.log('There are ' + msgs.length +
-                    ' messages of type "post" from ' + feedId)
-                res.send(msgs)
-            })
-        )
-    })
+    // fastify.post('/feed', (req, res) => {
+    //     var { feedId } = req.body
+    //     sbot.db.query(
+    //         where(
+    //             and(
+    //                 type('test'),
+    //                 author(feedId)
+    //             )
+    //         ),
+    //         toCallback((err, msgs) => {
+    //             if (err) return res.send(createError.InternalServerError())
+    //             console.log('There are ' + msgs.length +
+    //                 ' messages of type "post" from ' + feedId)
+    //             res.send(msgs)
+    //         })
+    //     )
+    // })
 
-    fastify.get('/feed/:feedId', (req, res) => {
-        var { feedId } = req.params
-        feedId = decodeURIComponent(feedId)
+    // fastify.get('/feed/:feedId', (req, res) => {
+    //     var { feedId } = req.params
+    //     feedId = decodeURIComponent(feedId)
 
-        console.log('*feed id*', feedId)
+    //     console.log('*feed id*', feedId)
 
-        sbot.db.query(
-            where(
-                and(
-                    type('test'),
-                    author(feedId)
-                )
-            ),
-            toCallback((err, msgs) => {
-                if (err) return res.send(createError.InternalServerError())
-                console.log('There are ' + msgs.length +
-                    ' messages of type "post" from ' + feedId)
-                res.send(msgs)
-            })
-        )
+    //     sbot.db.query(
+    //         where(
+    //             and(
+    //                 type('test'),
+    //                 author(feedId)
+    //             )
+    //         ),
+    //         toCallback((err, msgs) => {
+    //             if (err) return res.send(createError.InternalServerError())
+    //             console.log('There are ' + msgs.length +
+    //                 ' messages of type "post" from ' + feedId)
+    //             res.send(msgs)
+    //         })
+    //     )
 
-    })
+    // })
 
     return fastify
 }

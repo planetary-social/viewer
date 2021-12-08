@@ -17,6 +17,9 @@ const BASE_URL = 'http://localhost:' + PORT
 const DB_PATH = process.env.DB_PATH || (__dirname + '/db')
 const SERVER_KEYS = ssbKeys.loadOrCreateSync(path.join(DB_PATH, 'secret'))
 
+console.log('keys', SERVER_KEYS)
+console.log('db path', DB_PATH)
+
 const sbot = SecretStack({ caps })
     .use(require('ssb-db2'))
     .use(require('ssb-db2/about-self'))
@@ -26,6 +29,7 @@ const sbot = SecretStack({ caps })
     .use(require('ssb-ebt'))
     .use(require('ssb-threads'))
     .use(require('ssb-blobs'))
+    .use(require('ssb-suggest-lite'))
     .use(require('ssb-replication-scheduler'))
     .call(null, {
         path: DB_PATH,
@@ -39,39 +43,48 @@ const sbot = SecretStack({ caps })
 var msgKey
 var server
 test('setup', t => {
-    var next = after(3, () => t.end())
+    var next = after(2, () => t.end())
 
     server = Server(sbot)
 
     // Run the server!
     server.listen(8888, '0.0.0.0', (err, address) => {
-        if (err) t.fail(err)
+        if (err) {
+            console.log('ccccccc', err)
+            t.fail(err)
+        }
         console.log(`Server is now listening on ${address}`)
         next(null)
     })
 
-    // del the existing msgs
+    // del the existing msgs, then publish a new msg
     sbot.db.deleteFeed(sbot.config.keys.id, (err, _) => {
-        if (err) return cb(err)
-        next(null)
-    })
-
-    var content = { type: 'test', text: 'woooo 1' }
-    sbot.db.publish(content, (err, res) => {
         if (err) {
-            t.fail(err.toString())
+            console.log('aaaaaa', err)
             return next(err)
         }
-        msgKey = res.key
-        next(null)
+        
+        var content = { type: 'test', text: 'woooo 1' }
+        sbot.db.publish(content, (err, res) => {
+            if (err) {
+                console.log('bbbbbb', err)
+                t.fail(err.toString())
+                return next(err)
+            }
+            msgKey = res.key
+            console.log('**msg key**', msgKey)
+            next(null)
+        })
     })
+
 })
 
 test('server', t => {
     fetch(BASE_URL + '/')
         .then(res => {
             res.text().then(text => {
-                t.equal(text[0], '@', "should return the server's id")
+                t.equal(text, sbot.config.keys.id,
+                    "should return the server's id")
                 t.end()
             })
         })
@@ -82,6 +95,8 @@ test('server', t => {
 })
 
 test('get a message', t => {
+    console.log('encoded key****', encodeURIComponent(msgKey))
+
     fetch(BASE_URL + '/' + encodeURIComponent(msgKey))
         .then(res => {
             if (!res.ok) {
@@ -156,7 +171,10 @@ test('get a thread given a child message', t => {
 test('get a feed', t => {
     fetch(BASE_URL + '/feed/' + encodeURIComponent(sbot.config.keys.id))
         .then(res => {
-            if (!res.ok) return res.text()
+            if (!res.ok) {
+                t.fail()
+                return res.text()
+            }
             return res.json()
         })
         .then(res => {
@@ -173,6 +191,7 @@ test('get a feed', t => {
 test('all done', t => {
     server.close(err => {
         if (err) t.fail(err)
+
         sbot.close((err) => {
             if (err) t.fail(err)
             t.end()
