@@ -47,9 +47,29 @@ module.exports = function startServer (sbot) {
         })
     })
 
+    fastify.post('/feed', (req, res) => {
+        var { feedId } = req.body
+        sbot.db.query(
+            where(
+                and(
+                    type('test'),
+                    author(feedId)
+                )
+            ),
+            toCallback((err, msgs) => {
+                if (err) return res.send(createError.InternalServerError())
+                console.log('There are ' + msgs.length +
+                    ' messages of type "post" from ' + feedId)
+                res.send(msgs)
+            })
+        )
+    })
+
     fastify.get('/feed/:feedId', (req, res) => {
         var { feedId } = req.params
         feedId = decodeURIComponent(feedId)
+
+        console.log('*feed id*', feedId)
 
         sbot.db.query(
             where(
