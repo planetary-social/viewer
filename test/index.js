@@ -22,8 +22,8 @@ console.log('db path', DB_PATH)
 
 const sbot = SecretStack({ caps })
     .use(require('ssb-db2'))
-    .use(require('ssb-db2/about-self'))
     .use(require('ssb-db2/compat')) // include all compatibility plugins
+    .use(require('ssb-db2/about-self'))
     .use(require('ssb-friends'))
     .use(require('ssb-conn'))
     .use(require('ssb-ebt'))
@@ -168,25 +168,25 @@ test('get a thread given a child message', t => {
         })
 })
 
-test('get a feed', t => {
-    fetch(BASE_URL + '/feed/' + encodeURIComponent(sbot.config.keys.id))
-        .then(res => {
-            if (!res.ok) {
-                t.fail()
-                return res.text()
-            }
-            return res.json()
-        })
-        .then(res => {
-            t.equal(res[0].value.author, sbot.config.keys.id,
-                'should return the right feed')
-            t.end()
-        })
-        .catch(err => {
-            t.fail(err)
-            t.end()
-        })
-})
+// test('get a feed', t => {
+//     fetch(BASE_URL + '/feed/' + encodeURIComponent(sbot.config.keys.id))
+//         .then(res => {
+//             if (!res.ok) {
+//                 t.fail()
+//                 return res.text()
+//             }
+//             return res.json()
+//         })
+//         .then(res => {
+//             t.equal(res[0].value.author, sbot.config.keys.id,
+//                 'should return the right feed')
+//             t.end()
+//         })
+//         .catch(err => {
+//             t.fail(err)
+//             t.end()
+//         })
+// })
 
 test('all done', t => {
     server.close(err => {
