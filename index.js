@@ -35,8 +35,6 @@ module.exports = function startServer (sbot) {
         // so we can look for the `root` property and
         // see if there is a thread for this
 
-        console.log('*****id*****', id)
-
         sbot.db.get(id, (err, msg) => {
             if (err) {
                 console.log('errrrr', err)

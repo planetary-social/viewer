@@ -17,9 +17,6 @@ const BASE_URL = 'http://localhost:' + PORT
 const DB_PATH = process.env.DB_PATH || (__dirname + '/db')
 const SERVER_KEYS = ssbKeys.loadOrCreateSync(path.join(DB_PATH, 'secret'))
 
-console.log('keys', SERVER_KEYS)
-console.log('db path', DB_PATH)
-
 const sbot = SecretStack({ caps })
     .use(require('ssb-db2'))
     .use(require('ssb-db2/compat')) // include all compatibility plugins
@@ -50,7 +47,6 @@ test('setup', t => {
     // Run the server!
     server.listen(8888, '0.0.0.0', (err, address) => {
         if (err) {
-            console.log('ccccccc', err)
             t.fail(err)
         }
         console.log(`Server is now listening on ${address}`)
@@ -60,19 +56,16 @@ test('setup', t => {
     // del the existing msgs, then publish a new msg
     sbot.db.deleteFeed(sbot.config.keys.id, (err, _) => {
         if (err) {
-            console.log('aaaaaa', err)
             return next(err)
         }
         
         var content = { type: 'test', text: 'woooo 1' }
         sbot.db.publish(content, (err, res) => {
             if (err) {
-                console.log('bbbbbb', err)
                 t.fail(err.toString())
                 return next(err)
             }
             msgKey = res.key
-            console.log('**msg key**', msgKey)
             next(null)
         })
     })
@@ -95,8 +88,6 @@ test('server', t => {
 })
 
 test('get a message', t => {
-    console.log('encoded key****', encodeURIComponent(msgKey))
-
     fetch(BASE_URL + '/' + encodeURIComponent(msgKey))
         .then(res => {
             if (!res.ok) {
@@ -156,7 +147,6 @@ test('get a thread given a child message', t => {
     fetch(BASE_URL + '/' + encodeURIComponent(childKey))
         .then(res => res.json())
         .then(({ messages }) => {
-            // console.log('thread res', JSON.stringify(messages, null, 2))
             t.equal(messages[0].key, msgKey,
                 'should send back the thread starting with the root')
             t.end()
