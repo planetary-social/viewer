@@ -50,46 +50,40 @@ module.exports = function startServer (sbot) {
         })
     })
 
-    // fastify.post('/feed', (req, res) => {
-    //     var { feedId } = req.body
-    //     sbot.db.query(
-    //         where(
-    //             and(
-    //                 type('test'),
-    //                 author(feedId)
-    //             )
-    //         ),
-    //         toCallback((err, msgs) => {
-    //             if (err) return res.send(createError.InternalServerError())
-    //             console.log('There are ' + msgs.length +
-    //                 ' messages of type "post" from ' + feedId)
-    //             res.send(msgs)
-    //         })
-    //     )
-    // })
+    fastify.get('/feed/:userName', (req, res) => {
+        var { userName } = req.params
+        // feedId = decodeURIComponent(feedId)
 
-    // fastify.get('/feed/:feedId', (req, res) => {
-    //     var { feedId } = req.params
-    //     feedId = decodeURIComponent(feedId)
+        // console.log('*feed id*', feedId)
 
-    //     console.log('*feed id*', feedId)
+        console.log('***username***', userName)
 
-    //     sbot.db.query(
-    //         where(
-    //             and(
-    //                 type('test'),
-    //                 author(feedId)
-    //             )
-    //         ),
-    //         toCallback((err, msgs) => {
-    //             if (err) return res.send(createError.InternalServerError())
-    //             console.log('There are ' + msgs.length +
-    //                 ' messages of type "post" from ' + feedId)
-    //             res.send(msgs)
-    //         })
-    //     )
+        sbot.suggest.profile({ text: userName }, (err, matches) => {
+            if (err) console.log('OH no!', err)
 
-    // })
+            // do something with matches
+            console.log('**matches**', matches)
+
+            res.send(matches)
+        })
+
+
+        // sbot.db.query(
+        //     where(
+        //         and(
+        //             type('test'),
+        //             author(feedId)
+        //         )
+        //     ),
+        //     toCallback((err, msgs) => {
+        //         if (err) return res.send(createError.InternalServerError())
+        //         console.log('There are ' + msgs.length +
+        //             ' messages of type "post" from ' + feedId)
+        //         res.send(msgs)
+        //     })
+        // )
+
+    })
 
     return fastify
 }

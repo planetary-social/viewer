@@ -6,6 +6,7 @@ var Server = require('../')
 const caps = require('./caps.json')
 var path = require('path')
 var after = require('after')
+const user = require('./user.json')
 // var parallel = require('run-parallel')
 // var ssc = require('@nichoth/ssc')
 // const validate = require('ssb-validate');
@@ -59,13 +60,14 @@ test('setup', t => {
             return next(err)
         }
         
+        // now publish a msg
         var content = { type: 'test', text: 'woooo 1' }
-        sbot.db.publish(content, (err, res) => {
+        sbot.db.publish(content, (err, msg) => {
             if (err) {
                 t.fail(err.toString())
                 return next(err)
             }
-            msgKey = res.key
+            msgKey = msg.key
             next(null)
         })
     })
@@ -158,25 +160,43 @@ test('get a thread given a child message', t => {
         })
 })
 
-// test('get a feed', t => {
-//     fetch(BASE_URL + '/feed/' + encodeURIComponent(sbot.config.keys.id))
-//         .then(res => {
-//             if (!res.ok) {
-//                 t.fail()
-//                 return res.text()
-//             }
-//             return res.json()
-//         })
-//         .then(res => {
-//             t.equal(res[0].value.author, sbot.config.keys.id,
-//                 'should return the right feed')
-//             t.end()
-//         })
-//         .catch(err => {
-//             t.fail(err)
-//             t.end()
-//         })
-// })
+test('get a feed', t => {
+    // add usernames
+    // name a user 'alice'
+    sbot.db.publishAs(user, {
+        type: 'about',
+        about: user.id,
+        name: 'alice'
+    }, (err, res) => {
+        if (err) return t.fail(err)
+        console.log('published user name', res)
+
+        // now post a message by them
+        sbot.db.publishAs(user, {
+            type: 'test',
+            text: 'wooo'
+        }, (err, msg) => {
+            if (err) {
+                console.log('errrr', err)
+                return t.end(err)
+            }
+            console.log('posted a msg', msg)
+
+            // finally get their feed
+            fetch(BASE_URL + '/feed/' + 'alice')
+                .then(res => res.ok ? res.json() : res.text())
+                .then(res => {
+                    console.log('fetched feed', res)
+                    t.end()
+                })
+                .catch(err => {
+                    t.fail(err)
+                    t.end()
+                })
+        })
+
+    })
+})
 
 test('all done', t => {
     server.close(err => {
