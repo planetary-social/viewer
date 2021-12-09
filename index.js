@@ -1,4 +1,4 @@
-const { where, /* and, */ type, /* author, */ toCallback } = require('ssb-db2/operators')
+const { where,  and, type,  author, toCallback } = require('ssb-db2/operators')
 var createError = require('http-errors')
 const fastify = require('fastify')({
   logger: true
@@ -44,7 +44,7 @@ module.exports = function startServer (sbot) {
             var rootId = (msg.content && msg.content.root) || id
 
             getThread(sbot, rootId, (err, msgs) => {
-                if (err) res.send(createError.InternalServerError())
+                if (err) return res.send(createError.InternalServerError())
                 res.send(msgs)
             })
         })
@@ -52,22 +52,35 @@ module.exports = function startServer (sbot) {
 
     fastify.get('/feed/:userName', (req, res) => {
         var { userName } = req.params
-        // feedId = decodeURIComponent(feedId)
-
-        // console.log('*feed id*', feedId)
-
-        console.log('***username***', userName)
 
         // TODO
         // we want to find the id for the given username,
         // then get the feed for that id
         sbot.suggest.profile({ text: userName }, (err, matches) => {
-            if (err) console.log('OH no!', err)
+            if (err) {
+                console.log('OH no!', err)
+                return res.send(createError.InternalServerError())
+            }
 
             // do something with matches
-            console.log('**matches**', matches)
+            const id = matches[0].id
 
-            res.send(matches)
+            sbot.db.query(
+                where(
+                    and(
+                        type('post'),
+                        author(id)
+                    )
+                ),
+                toCallback((err, msgs) => {
+                    if (err) {
+                        return res.send(createError.InternalServerError())
+                    }
+                    // TODO -- can we reverse this in the query?
+                    res.send(msgs.reverse())
+                })
+            )
+
         })
     })
 
