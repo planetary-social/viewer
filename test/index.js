@@ -160,42 +160,70 @@ test('get a thread given a child message', t => {
         })
 })
 
-test('get a feed', t => {
-    // add usernames
-    // name a user 'alice'
-    sbot.db.publishAs(user, {
-        type: 'about',
-        about: user.id,
-        name: 'alice'
-    }, (err, res) => {
-        if (err) return t.fail(err)
-        console.log('published user name', res)
+// test('get a feed', t => {
+//     // add usernames
+//     // name a user 'alice'
+//     sbot.db.publishAs(user, {
+//         type: 'about',
+//         about: user.id,
+//         name: 'alice'
+//     }, (err, res) => {
+//         if (err) return t.fail(err)
+//         console.log('published user name', res)
 
-        // now post a message by them
-        sbot.db.publishAs(user, {
-            type: 'test',
-            text: 'wooo'
-        }, (err, msg) => {
-            if (err) {
-                console.log('errrr', err)
-                return t.end(err)
-            }
-            console.log('posted a msg', msg)
+//         // now post a message by them
+//         sbot.db.publishAs(user, {
+//             type: 'test',
+//             text: 'wooo'
+//         }, (err, msg) => {
+//             if (err) {
+//                 console.log('errrr', err)
+//                 return t.end(err)
+//             }
+//             console.log('posted a msg', msg)
 
-            // finally get their feed
-            fetch(BASE_URL + '/feed/' + 'alice')
-                .then(res => res.ok ? res.json() : res.text())
-                .then(res => {
-                    console.log('fetched feed', res)
-                    t.end()
-                })
-                .catch(err => {
-                    t.fail(err)
-                    t.end()
-                })
-        })
+//             // finally get their feed
+//             fetch(BASE_URL + '/feed/' + 'alice')
+//                 .then(res => res.ok ? res.json() : res.text())
+//                 .then(res => {
+//                     console.log('fetched feed', res)
+//                     t.end()
+//                 })
+//                 .catch(err => {
+//                     t.fail(err)
+//                     t.end()
+//                 })
+//         })
 
+//     })
+// })
+
+test('get default view', t => {
+    var content = { type: 'post', text: 'woooo' }
+    var key
+    sbot.db.publish(content, (err, msg) => {
+        key = msg.key
+        console.log('msg.key', msg.key)
+        if (err) {
+            t.fail(err.toString())
+            return t.end()
+        }
+
+        fetch(BASE_URL + '/default')
+            .then(res => res.ok ? res.json() : res.text())
+            .then(res => {
+                t.equal(res[0].key, key,
+                    'should return all messages that we know about')
+                t.end()
+            })
+            .catch(err => {
+                t.fail(err)
+                t.end()
+            })
     })
+
+
+
 })
 
 test('all done', t => {

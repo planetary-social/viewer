@@ -1,4 +1,4 @@
-// const { where, and, type, author, toCallback } = require('ssb-db2/operators')
+const { where, /* and, */ type, /* author, */ toCallback } = require('ssb-db2/operators')
 var createError = require('http-errors')
 const fastify = require('fastify')({
   logger: true
@@ -58,6 +58,9 @@ module.exports = function startServer (sbot) {
 
         console.log('***username***', userName)
 
+        // TODO
+        // we want to find the id for the given username,
+        // then get the feed for that id
         sbot.suggest.profile({ text: userName }, (err, matches) => {
             if (err) console.log('OH no!', err)
 
@@ -66,25 +69,18 @@ module.exports = function startServer (sbot) {
 
             res.send(matches)
         })
+    })
 
-
-        // sbot.db.query(
-        //     where(
-        //         and(
-        //             type('test'),
-        //             author(feedId)
-        //         )
-        //     ),
-        //     toCallback((err, msgs) => {
-        //         if (err) return res.send(createError.InternalServerError())
-        //         console.log('There are ' + msgs.length +
-        //             ' messages of type "post" from ' + feedId)
-        //         res.send(msgs)
-        //     })
-        // )
-
+    fastify.get('/default', (req, res) => {
+        sbot.db.query(
+            where( type('post') ),
+            toCallback((err, msgs) => {
+                if (err) res.send(createError.InternalServerError())
+                // console.log('There are ' + msgs.length + ' posts')
+                res.send(msgs.reverse())
+            })
+        )
     })
 
     return fastify
 }
-
