@@ -1,5 +1,6 @@
-require('isomorphic-fetch');
+var fetch = require('node-fetch');
 var test = require('tape')
+const crypto = require('crypto')
 const SecretStack = require('secret-stack')
 const ssbKeys = require('ssb-keys')
 var Server = require('../')
@@ -7,16 +8,15 @@ const caps = require('./caps.json')
 var path = require('path')
 var after = require('after')
 const user = require('./user.json')
-// var parallel = require('run-parallel')
-// var ssc = require('@nichoth/ssc')
-// const validate = require('ssb-validate');
-// var S = require('pull-stream')
-// const pullAsync = require('pull-async');
+var { read } = require('pull-files')
+var S = require('pull-stream')
+var fs = require('fs')
 
 const PORT = 8888
 const BASE_URL = 'http://localhost:' + PORT
 const DB_PATH = process.env.DB_PATH || (__dirname + '/db')
 const SERVER_KEYS = ssbKeys.loadOrCreateSync(path.join(DB_PATH, 'secret'))
+
 
 const sbot = SecretStack({ caps })
     .use(require('ssb-db2'))
@@ -27,6 +27,7 @@ const sbot = SecretStack({ caps })
     .use(require('ssb-ebt'))
     .use(require('ssb-threads'))
     .use(require('ssb-blobs'))
+    .use(require('ssb-serve-blobs'))
     .use(require('ssb-suggest-lite'))
     .use(require('ssb-replication-scheduler'))
     .call(null, {
@@ -227,17 +228,82 @@ test('get default view', t => {
                 t.end()
             })
     })
-
-
-
 })
+
+test('get a blob', t => {
+    S(
+        read(__dirname + '/caracal.jpg'),
+        S.map(file => file.data),
+        sbot.blobs.add((err, blobId) => {
+            console.log('**in here**', err, blobId)
+
+            if (err) {
+                t.fail(err)
+                return t.end()
+            }
+
+            fetch(BASE_URL + '/blob/' + encodeURIComponent(blobId))
+                // .then(res => {
+                //     // res.blob()
+                //         // .then(blob => {
+                //         //     console.log('blobbing', hash(blob))
+                //         // })
+                //     return res
+                // })
+                // .then(res => {
+                //     res.text().then(r => console.log('r', r))
+                //     return res
+                // })
+                .then(res => read.ok ? res.arrayBuffer() : res.text())
+                // .then(res => read.ok ? res.buffer() : res.text())
+                .then(buf => {
+                    var buffer = Buffer.from(buf)
+
+                    console.log('cccc', hash(buffer))
+                    console.log('bbb', hash(buf))
+                    var uintArr = new Uint8Array(buf)
+                    console.log('uuuuu', hash(uintArr))
+
+                    var file = fs.readFileSync(__dirname + '/caracal.jpg')
+                    var id = hash(file)
+                    console.log('aaa', id)
+                    t.equal(blobId, id, 'should serve the blob')
+
+                    // blob.arrayBuffer()
+                    //     .then(buf => {
+                    //         var id = hash(buf)
+                    //         t.equal(id, blobId, 'should serve the blob')
+                    //         t.end()
+                    //     })
+                })
+                .catch(err => {
+                    console.log('aaaaa', err)
+                    t.fail(err)
+                    t.end()
+                })
+        })
+    )
+})
+
+function hash (buf) {
+    buf = typeof buf === 'string' ? Buffer.from(buf) : buf
+    return '&' + crypto.createHash('sha256')
+        .update(buf)
+        .digest('base64') + '.sha256'
+}
 
 test('all done', t => {
     server.close(err => {
-        if (err) t.fail(err)
+        if (err) {
+            t.fail(err)
+            return console.log('errrr', err)
+        }
 
         sbot.close((err) => {
-            if (err) t.fail(err)
+            if (err) {
+                t.fail(err)
+                console.log('aaaaa', err)
+            }
             t.end()
         })
     })
