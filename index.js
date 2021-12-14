@@ -37,18 +37,8 @@ module.exports = function startServer (sbot) {
     })
 
     fastify.get('/blob/:blobId', (req, res) => {
-        // console.log('**got req**', req)
         var { blobId } = req.params
         var source = sbot.blobs.get(blobId)
-        // S(
-        //     source,
-        //     S.collect((err, data) => {
-        //         console.log('done', err, data)
-        //         var _buf = Buffer.concat(data)
-        //         fs.writeFileSync('aaa.jpg', _buf)
-        //         res.send(_buf)
-        //     })
-        // )
         res.send(toStream.source(source))
     })
 
