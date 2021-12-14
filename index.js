@@ -5,7 +5,6 @@ const fastify = require('fastify')({
 })
 var S = require('pull-stream')
 var toStream = require('pull-stream-to-stream')
-var fs = require('fs')
 
 
 module.exports = function startServer (sbot) {
