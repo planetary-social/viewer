@@ -243,41 +243,13 @@ test('get a blob', t => {
             }
 
             fetch(BASE_URL + '/blob/' + encodeURIComponent(blobId))
-                // .then(res => {
-                //     // res.blob()
-                //         // .then(blob => {
-                //         //     console.log('blobbing', hash(blob))
-                //         // })
-                //     return res
-                // })
-                // .then(res => {
-                //     res.text().then(r => console.log('r', r))
-                //     return res
-                // })
-                .then(res => read.ok ? res.arrayBuffer() : res.text())
-                // .then(res => read.ok ? res.buffer() : res.text())
+                .then(res => res.ok ? res.buffer() : res.text())
                 .then(buf => {
-                    var buffer = Buffer.from(buf)
-
-                    console.log('cccc', hash(buffer))
-                    console.log('bbb', hash(buf))
-                    var uintArr = new Uint8Array(buf)
-                    console.log('uuuuu', hash(uintArr))
-
-                    var file = fs.readFileSync(__dirname + '/caracal.jpg')
-                    var id = hash(file)
-                    console.log('aaa', id)
-                    t.equal(blobId, id, 'should serve the blob')
-
-                    // blob.arrayBuffer()
-                    //     .then(buf => {
-                    //         var id = hash(buf)
-                    //         t.equal(id, blobId, 'should serve the blob')
-                    //         t.end()
-                    //     })
+                    t.equal(blobId, hash(buf), 'should serve the blob')
+                    t.end()
                 })
                 .catch(err => {
-                    console.log('aaaaa', err)
+                    console.log('errrr', err)
                     t.fail(err)
                     t.end()
                 })
