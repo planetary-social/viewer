@@ -5,6 +5,7 @@ const fastify = require('fastify')({
 })
 var S = require('pull-stream')
 var toStream = require('pull-stream-to-stream')
+var fs = require('fs')
 
 
 module.exports = function startServer (sbot) {
@@ -39,14 +40,16 @@ module.exports = function startServer (sbot) {
         // console.log('**got req**', req)
         var { blobId } = req.params
         var source = sbot.blobs.get(blobId)
-        S(
-            source,
-            S.collect((err, data) => {
-                console.log('done', err, data)
-                res.send(Buffer.concat(data))
-            })
-        )
-        // res.send(toStream.source(source))
+        // S(
+        //     source,
+        //     S.collect((err, data) => {
+        //         console.log('done', err, data)
+        //         var _buf = Buffer.concat(data)
+        //         fs.writeFileSync('aaa.jpg', _buf)
+        //         res.send(_buf)
+        //     })
+        // )
+        res.send(toStream.source(source))
     })
 
     fastify.get('/feed/:userName', (req, res) => {
