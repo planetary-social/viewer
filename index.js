@@ -53,7 +53,11 @@ module.exports = function startServer (sbot) {
                 return res.send(createError.InternalServerError())
             }
 
-            const id = matches[0].id
+            const id = matches[0] && matches[0].id
+
+            if (!id) {
+                return res.code(404).send('not found')
+            }
 
             sbot.db.query(
                 where(

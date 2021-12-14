@@ -1,6 +1,6 @@
 # planetary viewer
 
-A backend component
+A server-side component
 
 This servers data via http from a given sbot
 

@@ -10,7 +10,6 @@ var after = require('after')
 const user = require('./user.json')
 var { read } = require('pull-files')
 var S = require('pull-stream')
-var fs = require('fs')
 
 const PORT = 8888
 const BASE_URL = 'http://localhost:' + PORT
@@ -157,6 +156,19 @@ test('get a thread given a child message', t => {
         .catch(err => {
             console.log('oh no', err)
             t.fail(err)
+            t.end()
+        })
+})
+
+test('get a non-existant feed', t => {
+    fetch(BASE_URL + '/feed/' + 'foo')
+        .then(res => {
+            if (res.ok) t.fail('should return 404')
+            t.equal(res.status, 404, 'should return 404')
+            t.end()
+        })
+        .catch(err => {
+            t.fail('should get a 404 response', err)
             t.end()
         })
 })
