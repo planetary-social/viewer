@@ -247,7 +247,7 @@ test('get a blob', t => {
         read(__dirname + '/caracal.jpg'),
         S.map(file => file.data),
         sbot.blobs.add((err, blobId) => {
-            console.log('**in here**', err, blobId)
+            // console.log('**in here**', err, blobId)
 
             if (err) {
                 t.fail(err)

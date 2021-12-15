@@ -78,6 +78,11 @@ module.exports = function startServer (sbot) {
         })
     })
 
+    fastify.get('/tag/:tagName', (req, res) => {
+        var { tagName } = req.params
+        // now get the messages that match that tag
+    })
+
     fastify.get('/default', (req, res) => {
         sbot.db.query(
             where( type('post') ),
