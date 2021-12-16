@@ -2,7 +2,10 @@
 
 A server-side component
 
-This servers data via http from a given sbot
+This serves data via http from a given sbot
+
+This is used by the [planetary pub](https://github.com/planetary-social/planetary-pub)
+
 
 ## install
 ```
