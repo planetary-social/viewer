@@ -160,19 +160,6 @@ test('get a thread given a child message', t => {
         })
 })
 
-test('get a non-existant feed', t => {
-    fetch(BASE_URL + '/feed/' + 'foo')
-        .then(res => {
-            if (res.ok) t.fail('should return 404')
-            t.equal(res.status, 404, 'should return 404')
-            t.end()
-        })
-        .catch(err => {
-            t.fail('should get a 404 response', err)
-            t.end()
-        })
-})
-
 test('get a feed', t => {
     // following them is necessary for the `ssb-suggest-lite` plugin
     sbot.friends.follow(user.id, null, function (err, fol) {
@@ -215,6 +202,19 @@ test('get a feed', t => {
 
     })
 
+})
+
+test('get a non-existant feed', t => {
+    fetch(BASE_URL + '/feed/' + 'foo')
+        .then(res => {
+            if (res.ok) t.fail('should return 404')
+            t.equal(res.status, 404, 'should return 404')
+            t.end()
+        })
+        .catch(err => {
+            t.fail('should get a 404 response', err)
+            t.end()
+        })
 })
 
 test('get default view', t => {
