@@ -59,6 +59,8 @@ test('setup', t => {
         if (err) {
             return next(err)
         }
+
+        console.log('deleted msgs', err, _)
         
         // now publish a msg
         var content = { type: 'test', text: 'woooo 1' }
@@ -267,6 +269,26 @@ test('get a blob', t => {
                 })
         })
     )
+})
+
+test('get messages for a hashtag', t => {
+    t.plan(1)
+
+    var content = { type: 'post', text: 'woooo #test', channel: '#test' }
+
+    sbot.db.publishAs(user, content, (err, newMsg) => {
+        if (err) return t.fail(err)
+        // console.log('**publish res**', newMsg)
+
+        fetch(BASE_URL + '/tag/test')
+            .then(res => res.ok ? res.json() : res.text())
+            .then(res => {
+                t.equal(res[0].root.key, newMsg.key)
+                console.log('**got tags**', res.length)
+            })
+            .catch(err => t.fail(err))
+    })
+
 })
 
 function hash (buf) {

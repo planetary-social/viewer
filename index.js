@@ -80,7 +80,17 @@ module.exports = function startServer (sbot) {
 
     fastify.get('/tag/:tagName', (req, res) => {
         var { tagName } = req.params
-        // now get the messages that match that tag
+        S(
+            // now get the messages that match that tag
+            sbot.threads.hashtagSummary({
+                hashtag: '#' + tagName
+            }),
+            S.collect((err, msgs) => {
+                console.log('in here', err, msgs.length)
+                if (err) return res.send(createError.InternalServerError(err))
+                res.send(msgs)
+            })
+        )
     })
 
     fastify.get('/default', (req, res) => {
