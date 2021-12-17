@@ -44,10 +44,13 @@ module.exports = function startServer (sbot) {
     fastify.get('/feed/:userName', (req, res) => {
         var { userName } = req.params
 
+        console.log('aaaaaaa', userName)
+
         // TODO
         // we want to find the id for the given username,
         // then get the feed for that id
         sbot.suggest.profile({ text: userName }, (err, matches) => {
+            console.log('bbbbbbbbb', err, matches)
             if (err) {
                 console.log('OH no!', err)
                 return res.send(createError.InternalServerError())
