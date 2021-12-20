@@ -39,12 +39,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/planetary-social/planetary-viewer.git"
+    "url": "git+https://github.com/planetary-social/viewer.git"
   },
   "author": "Nick Thomas <nichoth@gmail.com>",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/planetary-social/planetary-viewer/issues"
+    "url": "https://github.com/planetary-social/viewer/issues"
   },
-  "homepage": "https://github.com/planetary-social/planetary-viewer#readme"
+  "homepage": "https://github.com/planetary-social/viewer#readme"
 }
+
