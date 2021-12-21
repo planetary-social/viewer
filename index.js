@@ -108,20 +108,21 @@ module.exports = function startServer (sbot) {
         var { username } = req.params
 
         // first get the user ID
-
-        // then query for thier posts so we can count them
-
         sbot.suggest.profile({ text: username }, (err, matches) => {
             if (err) {
                 return res.send(createError.InternalServerError(err))
             }
 
+            // TODO -- fix this part
+            // should return a list of user IDs or something if there is
+            // more than 1 match
             const id = matches[0] && matches[0].id
 
             if (!id) {
                 return res.code(404).send('not found')
             }
 
+            // then query for thier posts so we can count them
             sbot.db.query(
                 where(
                     and(
@@ -134,7 +135,11 @@ module.exports = function startServer (sbot) {
                         return res.send(createError.InternalServerError())
                     }
                     console.log('There are ' + msgs.length + ' messages')
-                    res.send({ id, posts: msgs.length })
+                    res.send({
+                        id,
+                        username,
+                        posts: msgs.length
+                    })
                 })
             )
         })

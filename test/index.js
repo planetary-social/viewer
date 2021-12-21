@@ -10,6 +10,7 @@ var after = require('after')
 const user = require('./user.json')
 var { read } = require('pull-files')
 var S = require('pull-stream')
+var alice = user
 
 const PORT = 8888
 const BASE_URL = 'http://localhost:' + PORT
@@ -288,6 +289,22 @@ test('get messages for a hashtag', t => {
             })
             .catch(err => t.fail(err))
     })
+})
+
+test('get counts of messages', t => {
+    fetch(BASE_URL + '/counts/alice')
+        .then(res => res.ok ? res.json() : res.text())
+        .then(res => {
+            t.equal(res.username, 'alice', 'should return username')
+            t.equal(res.id, alice.id, 'should return user ID')
+            t.equal(typeof res.posts, 'number',
+                'should return number of posts')
+            t.end()
+        })
+        .catch(err => {
+            t.fail(err)
+            t.end()
+        })
 
 })
 

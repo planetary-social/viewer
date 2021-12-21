@@ -35,7 +35,7 @@
   },
   "scripts": {
     "postversion": "git push && git push --tags && npm publish",
-    "test": "tape test/*.js | tap-spec"
+    "test": "NODE_ENV=test tape test/*.js | tap-spec"
   },
   "repository": {
     "type": "git",
