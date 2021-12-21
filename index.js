@@ -93,7 +93,7 @@ module.exports = function startServer (sbot) {
         )
     })
 
-    fastify.get('/default', (req, res) => {
+    fastify.get('/default', (_, res) => {
         sbot.db.query(
             where( type('post') ),
             toCallback((err, msgs) => {
@@ -102,6 +102,43 @@ module.exports = function startServer (sbot) {
                 res.send(msgs.reverse())
             })
         )
+    })
+
+    fastify.get('/counts/:username', (req, res) => {
+        var { username } = req.params
+
+        // first get the user ID
+
+        // then query for thier posts so we can count them
+
+        sbot.suggest.profile({ text: username }, (err, matches) => {
+            if (err) {
+                return res.send(createError.InternalServerError(err))
+            }
+
+            const id = matches[0] && matches[0].id
+
+            if (!id) {
+                return res.code(404).send('not found')
+            }
+
+            sbot.db.query(
+                where(
+                    and(
+                        type('post'),
+                        author(id)
+                    ),
+                ),
+                toCallback((err, msgs) => {
+                    if (err) {
+                        return res.send(createError.InternalServerError())
+                    }
+                    console.log('There are ' + msgs.length + ' messages')
+                    res.send({ id, posts: msgs.length })
+                })
+            )
+        })
+
     })
 
     return fastify
