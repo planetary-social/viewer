@@ -290,10 +290,17 @@ test('get counts of messages', t => {
     fetch(BASE_URL + '/counts/alice')
         .then(res => res.ok ? res.json() : res.text())
         .then(res => {
+            console.log('*counts*', res)
+            const { id, post, following, followers } = res
             t.equal(res.username, 'alice', 'should return username')
             t.equal(res.id, alice.id, 'should return user ID')
             t.equal(typeof res.posts, 'number',
                 'should return number of posts')
+            t.equal(typeof res.following, 'number',
+                'should return folling count')
+            t.equal(typeof res.followers, 'number',
+                'should have number of folloers')
+            t.equal(res.username, 'alice', 'should return the username')
             t.end()
         })
         .catch(err => {

@@ -1,11 +1,12 @@
-const { where,  and, type,  author, toCallback } = require('ssb-db2/operators')
+const { where,  and, type, contact, author,
+    toCallback } = require('ssb-db2/operators')
 var createError = require('http-errors')
 const fastify = require('fastify')({
   logger: true
 })
 var S = require('pull-stream')
 var toStream = require('pull-stream-to-stream')
-
+// const parallel = require('run-parallel')
 
 module.exports = function startServer (sbot) {
     fastify.get('/', (_, res) => {
@@ -107,41 +108,81 @@ module.exports = function startServer (sbot) {
     fastify.get('/counts/:username', (req, res) => {
         var { username } = req.params
 
-        // first get the user ID
         sbot.suggest.profile({ text: username }, (err, matches) => {
             if (err) {
                 return res.send(createError.InternalServerError(err))
             }
 
             // TODO -- fix this part
-            // should return a list of user IDs or something if there is
+            // should return a list of user IDs or something if
+            // there is
             // more than 1 match
             const id = matches[0] && matches[0].id
+            if (!id) return res.send(createError.NotFound())
 
-            if (!id) {
-                return res.code(404).send('not found')
-            }
+            Promise.all([
+                new Promise((resolve, reject) => {
+                    // then query for thier posts so we can count them
+                    sbot.db.query(
+                        where(
+                            and(
+                                type('post'),
+                                author(id)
+                            ),
+                        ),
+                        toCallback((err, res) => {
+                            if (err) return reject(err)
+                            resolve(res.length)
+                        })
+                    )
+                }),
 
-            // then query for thier posts so we can count them
-            sbot.db.query(
-                where(
-                    and(
-                        type('post'),
-                        author(id)
-                    ),
-                ),
-                toCallback((err, msgs) => {
-                    if (err) {
-                        return res.send(createError.InternalServerError())
-                    }
-                    console.log('There are ' + msgs.length + ' messages')
-                    res.send({
-                        id,
-                        username,
-                        posts: msgs.length
+                // get the following count
+                new Promise((resolve, reject) => {
+                    sbot.friends.hops({
+                        start: id,
+                        max: 1
+                    }, (err, following) => {
+                        if (err) return reject(err)
+                        folArr = Object.keys(following).filter(id => {
+                            return following[id] === 1
+                        })
+                        resolve(folArr.length)
                     })
+                }),
+
+                // get the follower count
+                new Promise((resolve, reject) => {
+                    sbot.db.query(
+                        where(
+                            contact(id)
+                        ),
+                        toCallback((err, msgs) => {
+                            if (err) return reject(err)
+            
+                            var followers = msgs.reduce(function (acc, msg) {
+                                var auth = msg.value.author
+                                // duplicate, do nothing
+                                if (acc.indexOf(auth) > -1) return acc  
+                                // if they are following us,
+                                // add them to the list
+                                if (msg.value.content.following) {  
+                                    acc.push(auth)
+                                }
+                                return acc
+                            }, [])
+            
+                            resolve(followers.length)
+                        })
+                    )
                 })
-            )
+            ])
+                .then(([posts, following, followers]) => {
+                    res.send({ username, id, posts, following, followers })
+                })
+                .catch(err => {
+                    res.send(createError.InternalServerError(err))
+                })
         })
 
     })
