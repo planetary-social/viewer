@@ -105,6 +105,25 @@ module.exports = function startServer (sbot) {
         )
     })
 
+    fastify.get('/profile/:username', (req, res) => {
+        var { username } = req.params
+
+        sbot.suggest.profile({ text: username }, (err, matches) => {
+            if (err) {
+                return res.send(createError.InternalServerError(err))
+            }
+
+            // TODO -- fix duplicat username usecase
+            const id = matches[0] && matches[0].id
+            if (!id) return res.send(createError.NotFound())
+
+            sbot.db.onDrain('aboutSelf', () => {
+                const profile = sbot.db.getIndex('aboutSelf').getProfile(id)
+                res.send(profile)
+            })
+        })
+    })
+
     fastify.get('/counts/:username', (req, res) => {
         var { username } = req.params
 

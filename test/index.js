@@ -310,6 +310,48 @@ test('get counts of messages', t => {
 
 })
 
+test('get a profile', t => {
+    // __put an avatar__
+    // save the blob
+    S(
+        read(__dirname + '/test-data/cinnamon-roll.jpg'),
+        S.map(file => file.data),
+        sbot.blobs.add(function (err, blobId) {
+            t.error(err)
+
+            // now save the message
+            sbot.db.publishAs(alice, {
+                type: 'about',
+                about: alice.id,
+                image: {
+                link: blobId,       // required
+                type: 'image/jpeg' // optional, but recommended
+                }
+            }, (err) => {
+                t.error(err)
+
+                // now get the profile
+                fetch(BASE_URL + '/profile/alice')
+                    .then(res => res.ok ? res.json() : res.text())
+                    .then(profile => {
+                        t.equal(profile.image, blobId,
+                            "should have the user's avatar")
+                        t.equal(profile.name, 'alice',
+                            'should have the username')
+                        t.end()
+                    })
+                    .catch(err => {
+                        t.fail(err)
+                        t.end()
+                    })
+
+            })
+
+        })
+    )
+
+})
+
 function hash (buf) {
     buf = typeof buf === 'string' ? Buffer.from(buf) : buf
     return '&' + crypto.createHash('sha256')
