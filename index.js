@@ -67,13 +67,6 @@ module.exports = function startServer (sbot) {
                     )
                 ),
                 toPullStream()
-                // toCallback((err, msgs) => {
-                //     if (err) {
-                //         return res.send(createError.InternalServerError())
-                //     }
-                //     // TODO -- can we reverse this in the query?
-                //     res.send(msgs.reverse())
-                // })
             )
 
             S(
@@ -82,7 +75,6 @@ module.exports = function startServer (sbot) {
                 S.map((msg) => {
                     return sbot.threads.thread({
                         root: msg.key,
-                        // @TODO
                         allowlist: ['post'],
                         // threads sorted from most recent to least recent
                         reverse: true, 
@@ -94,18 +86,17 @@ module.exports = function startServer (sbot) {
                 S.flatten(),
 
                 S.map(res => res.messages.length > 1 ?
+                    // return either [thread] or non-threaded-msg
                     res.messages :
                     res.messages[0]
                 ),
 
                 S.collect((err, msgs) => {
-                    // eacch msg is a thread (an array of msgs)
-                    // console.log('**collected msgs***', msgs[0])
-                    // console.log('**collected msgs***', msgs[1])
                     if (err) {
                         return res.send(createError.InternalServerError(err))
                     }
                     // TODO -- can we reverse this in the query?
+                    // need to do this if we send the stream to res
                     res.send(msgs.reverse())
                 })
             )
