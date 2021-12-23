@@ -124,7 +124,6 @@ module.exports = function startServer (sbot) {
             where( type('post') ),
             toCallback((err, msgs) => {
                 if (err) res.send(createError.InternalServerError())
-                // console.log('There are ' + msgs.length + ' posts')
                 res.send(msgs.reverse())
             })
         )
@@ -204,13 +203,13 @@ module.exports = function startServer (sbot) {
                             if (err) return reject(err)
             
                             var followers = msgs.reduce(function (acc, msg) {
-                                var auth = msg.value.author
+                                var author = msg.value.author
                                 // duplicate, do nothing
-                                if (acc.indexOf(auth) > -1) return acc  
+                                if (acc.indexOf(author) > -1) return acc  
                                 // if they are following us,
                                 // add them to the list
                                 if (msg.value.content.following) {  
-                                    acc.push(auth)
+                                    acc.push(author)
                                 }
                                 return acc
                             }, [])
@@ -239,7 +238,7 @@ function getThread(sbot, rootId, cb) {
         sbot.threads.thread({
             root: rootId,
             // @TODO
-            allowlist: ['test'],
+            allowlist: ['test', 'post'],
             reverse: true, // threads sorted from most recent to least recent
             threadMaxSize: 3, // at most 3 messages in each thread
         }),
