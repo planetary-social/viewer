@@ -8,9 +8,13 @@ const caps = require('./caps.json')
 var path = require('path')
 var after = require('after')
 const user = require('./user.json')
+const userTwo = require('./user-two.json')
 var { read } = require('pull-files')
 var S = require('pull-stream')
 var alice = user
+const _ = {
+    flatten: require('lodash.flatten')
+}
 
 const PORT = 8888
 const BASE_URL = 'http://localhost:' + PORT
@@ -74,7 +78,6 @@ test('setup', t => {
             next(null)
         })
     })
-
 })
 
 test('server', t => {
@@ -165,9 +168,11 @@ test('get a thread given a child message', t => {
 
 test('get a feed', t => {
     // following them is necessary for the `ssb-suggest-lite` plugin
-    sbot.friends.follow(user.id, null, function (err, fol) {
+    sbot.friends.follow(user.id, null, function (err) {
         if (err) return console.log('errrrr', err)
+        t.error(err)
 
+        // publish their 'name' msg
         sbot.db.publishAs(user, {
             type: 'about',
             about: user.id,
@@ -180,24 +185,42 @@ test('get a feed', t => {
                 type: 'post',
                 text: 'wooo'
             }, (err, msg) => {
-                if (err) {
-                    console.log('errrr', err)
-                    return t.end(err)
-                }
+                t.error(err)
+                // console.log('*** msg ***', msg)
 
-                // finally get their feed
-                fetch(BASE_URL + '/feed/' + 'alice')
-                    .then(res => res.ok ? res.json() : res.text())
-                    .then(res => {
-                        t.equal(msg.key, res[0].key,
-                            'should return the users feed')
-                        t.equal(res[0].value.content.text, 'wooo',
-                            'should have the message content in feed')
-                        t.end()
-                    })
-                    .catch(err => {
-                        t.fail(err)
-                        t.end()
+                // publish a threaded response by a different user
+                sbot.db.publishAs(userTwo, {
+                    type: 'post',
+                    text: 'wooo',
+                    root: msg.key
+                }, (err) => {
+                    t.error(err)
+                    // console.log('**published user 2 msg**', res)
+
+                    // finally get their feed
+                    fetch(BASE_URL + '/feed/' + 'alice')
+                        .then(res => res.ok ? res.json() : res.text())
+                        .then(res => {
+                            // flatten the threads
+                            var _res = _.flatten(res)
+
+                            var firstMsg = _res.find(el => {
+                                return el.key && (el.key === msg.key)
+                            })
+
+                            var threadedMsg = _res.find(el => {
+                                return el.value.author === userTwo.id
+                            })
+                            t.ok(threadedMsg, 'should return threaded msgs')
+                            t.ok(firstMsg, "should return the user's feed")
+                            t.equal(firstMsg.value.author, user.id,
+                                'should have the right author')
+                            t.end()
+                        })
+                        .catch(err => {
+                            t.fail(err)
+                            t.end()
+                        })
                     })
             })
         })
@@ -222,7 +245,6 @@ test('get default view', t => {
     var key
     sbot.db.publish(content, (err, msg) => {
         key = msg.key
-        console.log('msg.key', msg.key)
         if (err) {
             t.fail(err.toString())
             return t.end()
@@ -280,7 +302,6 @@ test('get messages for a hashtag', t => {
             .then(res => res.ok ? res.json() : res.text())
             .then(res => {
                 t.equal(res[0].root.key, newMsg.key)
-                console.log('**got tags**', res.length)
             })
             .catch(err => t.fail(err))
     })
@@ -290,8 +311,6 @@ test('get counts of messages', t => {
     fetch(BASE_URL + '/counts/alice')
         .then(res => res.ok ? res.json() : res.text())
         .then(res => {
-            console.log('*counts*', res)
-            const { id, post, following, followers } = res
             t.equal(res.username, 'alice', 'should return username')
             t.equal(res.id, alice.id, 'should return user ID')
             t.equal(typeof res.posts, 'number',

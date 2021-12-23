@@ -1,12 +1,11 @@
 const { where,  and, type, contact, author,
-    toCallback } = require('ssb-db2/operators')
+    toCallback, toPullStream } = require('ssb-db2/operators')
 var createError = require('http-errors')
 const fastify = require('fastify')({
   logger: true
 })
 var S = require('pull-stream')
 var toStream = require('pull-stream-to-stream')
-// const parallel = require('run-parallel')
 
 module.exports = function startServer (sbot) {
     fastify.get('/', (_, res) => {
@@ -24,13 +23,13 @@ module.exports = function startServer (sbot) {
         sbot.db.get(id, (err, msg) => {
             if (err) {
                 console.log('errrrr', err)
-                return res.send(createError.InternalServerError())
+                return res.send(createError.InternalServerError(err))
             }
 
             var rootId = (msg.content && msg.content.root) || id
 
             getThread(sbot, rootId, (err, msgs) => {
-                if (err) return res.send(createError.InternalServerError())
+                if (err) return res.send(createError.InternalServerError(err))
                 res.send(msgs)
             })
         })
@@ -51,7 +50,7 @@ module.exports = function startServer (sbot) {
         sbot.suggest.profile({ text: userName }, (err, matches) => {
             if (err) {
                 console.log('OH no!', err)
-                return res.send(createError.InternalServerError())
+                return res.send(createError.InternalServerError(err))
             }
 
             const id = matches[0] && matches[0].id
@@ -60,16 +59,51 @@ module.exports = function startServer (sbot) {
                 return res.code(404).send('not found')
             }
 
-            sbot.db.query(
+            const source = sbot.db.query(
                 where(
                     and(
                         type('post'),
                         author(id)
                     )
                 ),
-                toCallback((err, msgs) => {
+                toPullStream()
+                // toCallback((err, msgs) => {
+                //     if (err) {
+                //         return res.send(createError.InternalServerError())
+                //     }
+                //     // TODO -- can we reverse this in the query?
+                //     res.send(msgs.reverse())
+                // })
+            )
+
+            S(
+                source,
+
+                S.map((msg) => {
+                    return sbot.threads.thread({
+                        root: msg.key,
+                        // @TODO
+                        allowlist: ['post'],
+                        // threads sorted from most recent to least recent
+                        reverse: true, 
+                        // at most 3 messages in each thread
+                        threadMaxSize: 3, 
+                    })
+                }),
+
+                S.flatten(),
+
+                S.map(res => res.messages.length > 1 ?
+                    res.messages :
+                    res.messages[0]
+                ),
+
+                S.collect((err, msgs) => {
+                    // eacch msg is a thread (an array of msgs)
+                    // console.log('**collected msgs***', msgs[0])
+                    // console.log('**collected msgs***', msgs[1])
                     if (err) {
-                        return res.send(createError.InternalServerError())
+                        return res.send(createError.InternalServerError(err))
                     }
                     // TODO -- can we reverse this in the query?
                     res.send(msgs.reverse())
@@ -113,7 +147,7 @@ module.exports = function startServer (sbot) {
                 return res.send(createError.InternalServerError(err))
             }
 
-            // TODO -- fix duplicat username usecase
+            // TODO -- fix duplicate username usecase
             const id = matches[0] && matches[0].id
             if (!id) return res.send(createError.NotFound())
 
@@ -134,8 +168,7 @@ module.exports = function startServer (sbot) {
 
             // TODO -- fix this part
             // should return a list of user IDs or something if
-            // there is
-            // more than 1 match
+            // there is more than 1 match
             const id = matches[0] && matches[0].id
             if (!id) return res.send(createError.NotFound())
 
