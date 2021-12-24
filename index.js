@@ -44,15 +44,14 @@ module.exports = function startServer (sbot) {
     fastify.get('/feed/:userName', (req, res) => {
         var { userName } = req.params
 
-        // TODO
-        // we want to find the id for the given username,
-        // then get the feed for that id
         sbot.suggest.profile({ text: userName }, (err, matches) => {
             if (err) {
                 console.log('OH no!', err)
                 return res.send(createError.InternalServerError(err))
             }
 
+            // @TODO -- return a list of id's if there is more than one
+            // match
             const id = matches[0] && matches[0].id
 
             if (!id) {
@@ -86,7 +85,7 @@ module.exports = function startServer (sbot) {
                 S.flatten(),
 
                 S.map(res => res.messages.length > 1 ?
-                    // return either [thread] or non-threaded-msg
+                    // return either [post, post, ...] or post (not in array)
                     res.messages :
                     res.messages[0]
                 ),

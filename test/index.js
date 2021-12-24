@@ -191,7 +191,7 @@ test('get a feed', t => {
                 // publish a threaded response by a different user
                 sbot.db.publishAs(userTwo, {
                     type: 'post',
-                    text: 'wooo',
+                    text: 'wooo2',
                     root: msg.key
                 }, (err) => {
                     t.error(err)
@@ -202,13 +202,19 @@ test('get a feed', t => {
                         .then(res => res.ok ? res.json() : res.text())
                         .then(res => {
                             // flatten the threads
-                            var _res = _.flatten(res)
+                            var flatMsgs = _.flatten(res)
 
-                            var firstMsg = _res.find(el => {
+                            var item = res.find(item => Array.isArray(item))
+                            console.log('***item***', item)
+                            item.forEach(i => {
+                                console.log('**content**', i.value.content)
+                            })
+
+                            var firstMsg = flatMsgs.find(el => {
                                 return el.key && (el.key === msg.key)
                             })
 
-                            var threadedMsg = _res.find(el => {
+                            var threadedMsg = flatMsgs.find(el => {
                                 return el.value.author === userTwo.id
                             })
                             t.ok(threadedMsg, 'should return threaded msgs')
