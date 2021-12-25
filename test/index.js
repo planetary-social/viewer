@@ -201,14 +201,13 @@ test('get a feed', t => {
                     fetch(BASE_URL + '/feed/' + 'alice')
                         .then(res => res.ok ? res.json() : res.text())
                         .then(res => {
-                            // flatten the threads
                             var flatMsgs = _.flatten(res)
 
-                            var item = res.find(item => Array.isArray(item))
-                            console.log('***item***', item)
-                            item.forEach(i => {
-                                console.log('**content**', i.value.content)
-                            })
+                            // var item = res.find(item => Array.isArray(item))
+                            // console.log('***item***', item)
+                            // item.forEach(i => {
+                            //     console.log('**content**', i.value.content)
+                            // })
 
                             var firstMsg = flatMsgs.find(el => {
                                 return el.key && (el.key === msg.key)
