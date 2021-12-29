@@ -84,8 +84,9 @@ test('server', t => {
     fetch(BASE_URL + '/')
         .then(res => {
             res.text().then(text => {
-                t.equal(text, sbot.config.keys.id,
+                t.ok(text.includes(sbot.config.keys.id),
                     "should return the server's id")
+                t.ok(text.includes('test'), 'should include the env variable')
                 t.end()
             })
         })

@@ -9,7 +9,7 @@ var toStream = require('pull-stream-to-stream')
 
 module.exports = function startServer (sbot) {
     fastify.get('/', (_, res) => {
-        res.send(sbot.config.keys.id)
+        res.send(sbot.config.keys.id + ' | ' + process.env.NODE_ENV)
     })
 
     fastify.get('/%:id', (req, res) => {
