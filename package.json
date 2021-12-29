@@ -1,7 +1,7 @@
 {
   "name": "@planetary-ssb/viewer",
   "description": "Http viewer of ssb data",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "main": "index.js",
   "devDependencies": {
     "@nichoth/ssc": "^0.0.21",
