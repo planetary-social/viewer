@@ -26,50 +26,36 @@ var msgKey
 var server
 var sbot
 test('setup', t => {
-    sbot = SecretStack({ caps })
-        .use(require('ssb-db2'))
-        .use(require('ssb-db2/compat')) // include all compatibility plugins
-        .use(require('ssb-db2/about-self'))
-        .use(require('ssb-friends'))
-        .use(require('ssb-conn'))
-        .use(require('ssb-ebt'))
-        .use(require('ssb-threads'))
-        .use(require('ssb-blobs'))
-        .use(require('ssb-serve-blobs'))
-        .use(require('ssb-suggest-lite'))
-        .use(require('ssb-replication-scheduler'))
-        .call(null, {
-            path: DB_PATH,
-            friends: {
-                hops: 2
-            },
-            // the server has an identity
-            keys: SERVER_KEYS
-        })
-
-    server = Server(sbot)
-
-    sbot.db.publishAs(alice, {
-        type: 'about',
-        about: alice.id,
-        name: 'alice'
-    }, (err) => {
+    rimraf(DB_PATH + '/db2', (err) => {
         t.error(err)
-        var next = after(2, (err) => {
-            t.error(err)
-            t.end()
-        })
-        sbot.db.publish({ type: 'test', text: 'woooo 1' }, (err, msg) => {
-            msgKey = msg.key
-            next(err)
-        })
+        sbot = createSbot({ DB_PATH })
+        server = Server(sbot)
 
-        // Run the server!
-        server.listen(8888, '0.0.0.0', (err, address) => {
-            next(err)
-            console.log(`Server is now listening on ${address}`)
+        sbot.db.publishAs(alice, {
+            type: 'about',
+            about: alice.id,
+            name: 'alice'
+        }, (err) => {
+            t.error(err)
+
+            var next = after(2, (err) => {
+                t.error(err)
+                t.end()
+            })
+
+            sbot.db.publish({ type: 'test', text: 'woooo 1' }, (err, msg) => {
+                msgKey = msg.key
+                next(err)
+            })
+
+            // Run the server!
+            server.listen(8888, '0.0.0.0', (err, address) => {
+                next(err)
+                console.log(`Server is now listening on ${address}`)
+            })
         })
     })
+
 })
 
 test('server', t => {
@@ -383,3 +369,27 @@ test('all done', t => {
         })
     })
 })
+
+function createSbot ({ DB_PATH }) {
+    const sbot = SecretStack({ caps })
+        .use(require('ssb-db2'))
+        .use(require('ssb-db2/compat')) // include all compatibility plugins
+        .use(require('ssb-db2/about-self'))
+        .use(require('ssb-friends'))
+        .use(require('ssb-conn'))
+        .use(require('ssb-ebt'))
+        .use(require('ssb-threads'))
+        .use(require('ssb-blobs'))
+        .use(require('ssb-serve-blobs'))
+        .use(require('ssb-suggest-lite'))
+        .use(require('ssb-replication-scheduler'))
+        .call(null, {
+            path: DB_PATH,
+            friends: {
+                hops: 2
+            },
+            // the server has an identity
+            keys: SERVER_KEYS
+        })
+    return sbot
+}
