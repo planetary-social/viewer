@@ -155,26 +155,24 @@ test('get a thread given a child message', t => {
 
 test('get a feed', t => {
     // following them is necessary for the `ssb-suggest-lite` plugin
-    sbot.friends.follow(user.id, null, function (err) {
+    sbot.friends.follow(alice.id, null, function (err) {
         if (err) return console.log('errrrr', err)
         t.error(err)
 
         // publish their 'name' msg
-        sbot.db.publishAs(user, {
+        sbot.db.publishAs(alice, {
             type: 'about',
-            about: user.id,
+            about: alice.id,
             name: 'alice'
         }, (err) => {
             if (err) return t.fail(err)
 
             // now post a message by them
-            sbot.db.publishAs(user, {
+            sbot.db.publishAs(alice, {
                 type: 'post',
                 text: 'wooo'
             }, (err, msg) => {
                 t.error(err)
-                // console.log('*** msg ***', msg)
-
                 // publish a threaded response by a different user
                 sbot.db.publishAs(userTwo, {
                     type: 'post',
@@ -182,19 +180,12 @@ test('get a feed', t => {
                     root: msg.key
                 }, (err) => {
                     t.error(err)
-                    // console.log('**published user 2 msg**', res)
 
                     // finally get their feed
                     fetch(BASE_URL + '/feed/' + 'alice')
                         .then(res => res.ok ? res.json() : res.text())
                         .then(res => {
                             var flatMsgs = _.flatten(res)
-
-                            // var item = res.find(item => Array.isArray(item))
-                            // console.log('***item***', item)
-                            // item.forEach(i => {
-                            //     console.log('**content**', i.value.content)
-                            // })
 
                             var firstMsg = flatMsgs.find(el => {
                                 return el.key && (el.key === msg.key)
