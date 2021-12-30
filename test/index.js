@@ -21,31 +21,31 @@ const BASE_URL = 'http://localhost:' + PORT
 const DB_PATH = process.env.DB_PATH || (__dirname + '/db')
 const SERVER_KEYS = ssbKeys.loadOrCreateSync(path.join(DB_PATH, 'secret'))
 
-
-const sbot = SecretStack({ caps })
-    .use(require('ssb-db2'))
-    .use(require('ssb-db2/compat')) // include all compatibility plugins
-    .use(require('ssb-db2/about-self'))
-    .use(require('ssb-friends'))
-    .use(require('ssb-conn'))
-    .use(require('ssb-ebt'))
-    .use(require('ssb-threads'))
-    .use(require('ssb-blobs'))
-    .use(require('ssb-serve-blobs'))
-    .use(require('ssb-suggest-lite'))
-    .use(require('ssb-replication-scheduler'))
-    .call(null, {
-        path: DB_PATH,
-        friends: {
-            hops: 2
-        },
-        // the server has an identity
-        keys: SERVER_KEYS
-    })
-
 var msgKey
 var server
+var sbot
 test('setup', t => {
+    sbot = SecretStack({ caps })
+        .use(require('ssb-db2'))
+        .use(require('ssb-db2/compat')) // include all compatibility plugins
+        .use(require('ssb-db2/about-self'))
+        .use(require('ssb-friends'))
+        .use(require('ssb-conn'))
+        .use(require('ssb-ebt'))
+        .use(require('ssb-threads'))
+        .use(require('ssb-blobs'))
+        .use(require('ssb-serve-blobs'))
+        .use(require('ssb-suggest-lite'))
+        .use(require('ssb-replication-scheduler'))
+        .call(null, {
+            path: DB_PATH,
+            friends: {
+                hops: 2
+            },
+            // the server has an identity
+            keys: SERVER_KEYS
+        })
+
     server = Server(sbot)
 
     // Run the server!
@@ -54,12 +54,8 @@ test('setup', t => {
             t.fail(err)
         }
         console.log(`Server is now listening on ${address}`)
-        var content = { type: 'test', text: 'woooo 1' }
-        sbot.db.publish(content, (err, msg) => {
-            if (err) {
-                t.fail(err.toString())
-                return next(err)
-            }
+        sbot.db.publish({ type: 'test', text: 'woooo 1' }, (err, msg) => {
+            t.error(err)
             msgKey = msg.key
             t.end()
         })
@@ -154,17 +150,17 @@ test('get a thread given a child message', t => {
 })
 
 test('get a feed', t => {
-    // following them is necessary for the `ssb-suggest-lite` plugin
-    sbot.friends.follow(alice.id, null, function (err) {
-        if (err) return console.log('errrrr', err)
+    // publish their 'name' msg
+    sbot.db.publishAs(alice, {
+        type: 'about',
+        about: alice.id,
+        name: 'alice'
+    }, (err) => {
+        if (err) console.log('errrrr', err)
         t.error(err)
 
-        // publish their 'name' msg
-        sbot.db.publishAs(alice, {
-            type: 'about',
-            about: alice.id,
-            name: 'alice'
-        }, (err) => {
+        // following them is necessary for the `ssb-suggest-lite` plugin
+        sbot.friends.follow(alice.id, null, function (err) {
             if (err) return t.fail(err)
 
             // now post a message by them
