@@ -6,15 +6,15 @@ const ssbKeys = require('ssb-keys')
 var Server = require('../')
 const caps = require('./caps.json')
 var path = require('path')
-var after = require('after')
 const user = require('./user.json')
 const userTwo = require('./user-two.json')
 var { read } = require('pull-files')
 var S = require('pull-stream')
-var alice = user
+const alice = user
 const _ = {
     flatten: require('lodash.flatten')
 }
+const rimraf = require('rimraf')
 
 const PORT = 8888
 const BASE_URL = 'http://localhost:' + PORT
@@ -46,8 +46,6 @@ const sbot = SecretStack({ caps })
 var msgKey
 var server
 test('setup', t => {
-    var next = after(2, () => t.end())
-
     server = Server(sbot)
 
     // Run the server!
@@ -56,18 +54,6 @@ test('setup', t => {
             t.fail(err)
         }
         console.log(`Server is now listening on ${address}`)
-        next(null)
-    })
-
-    // del the existing msgs, then publish a new msg
-    sbot.db.deleteFeed(sbot.config.keys.id, (err, _) => {
-        if (err) {
-            return next(err)
-        }
-
-        console.log('deleted msgs', err, _)
-        
-        // now publish a msg
         var content = { type: 'test', text: 'woooo 1' }
         sbot.db.publish(content, (err, msg) => {
             if (err) {
@@ -75,7 +61,7 @@ test('setup', t => {
                 return next(err)
             }
             msgKey = msg.key
-            next(null)
+            t.end()
         })
     })
 })
