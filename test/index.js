@@ -15,6 +15,7 @@ const _ = {
     flatten: require('lodash.flatten')
 }
 const rimraf = require('rimraf')
+const after = require('after')
 
 const PORT = 8888
 const BASE_URL = 'http://localhost:' + PORT
@@ -48,16 +49,25 @@ test('setup', t => {
 
     server = Server(sbot)
 
-    // Run the server!
-    server.listen(8888, '0.0.0.0', (err, address) => {
-        if (err) {
-            t.fail(err)
-        }
-        console.log(`Server is now listening on ${address}`)
-        sbot.db.publish({ type: 'test', text: 'woooo 1' }, (err, msg) => {
+    sbot.db.publishAs(alice, {
+        type: 'about',
+        about: alice.id,
+        name: 'alice'
+    }, (err) => {
+        t.error(err)
+        var next = after(2, (err) => {
             t.error(err)
-            msgKey = msg.key
             t.end()
+        })
+        sbot.db.publish({ type: 'test', text: 'woooo 1' }, (err, msg) => {
+            msgKey = msg.key
+            next(err)
+        })
+
+        // Run the server!
+        server.listen(8888, '0.0.0.0', (err, address) => {
+            next(err)
+            console.log(`Server is now listening on ${address}`)
         })
     })
 })
