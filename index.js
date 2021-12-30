@@ -1,5 +1,6 @@
 const { where,  and, type, contact, author,
-    toCallback, toPullStream } = require('ssb-db2/operators')
+    toCallback, descending, toPullStream,
+    batch } = require('ssb-db2/operators')
 var createError = require('http-errors')
 const fastify = require('fastify')({
   logger: true
@@ -65,6 +66,8 @@ module.exports = function startServer (sbot) {
                         author(id)
                     )
                 ),
+                batch(20),
+                descending(),
                 toPullStream()
             )
 
@@ -84,11 +87,12 @@ module.exports = function startServer (sbot) {
 
                 S.flatten(),
 
-                S.map(res => res.messages.length > 1 ?
+                S.map(res => {
                     // return either [post, post, ...] or post (not in array)
-                    res.messages :
-                    res.messages[0]
-                ),
+                    return res.messages.length > 1 ?
+                        res.messages :
+                        res.messages[0]
+                }),
 
                 S.collect((err, msgs) => {
                     if (err) {
@@ -96,7 +100,7 @@ module.exports = function startServer (sbot) {
                     }
                     // TODO -- can we reverse this in the query?
                     // need to do this if we send the stream to res
-                    res.send(msgs.reverse())
+                    res.send(msgs)
                 })
             )
 
