@@ -207,6 +207,7 @@ test('feeds are paginated', t => {
     // create an array filled with 0...n
     var postsContent = Array.from({ length: 30 }, (_, i) => i)
 
+    // post all the test content we just made
     series(postsContent.map(content => {
         return cb => {
             sbot.db.publishAs(alice, {
@@ -215,6 +216,7 @@ test('feeds are paginated', t => {
             }, cb)
         }
     }), () => {
+        // call the http API
         fetch(BASE_URL + '/feed/' + 'alice')
             .then(res => res.ok ? res.json() : res.text())
             .then(res => {
