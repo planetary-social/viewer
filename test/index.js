@@ -202,6 +202,38 @@ test('get a feed', t => {
     })
 })
 
+test('feeds are paginated', t => {
+    // create an array filled with 0...n
+    var postsContent = Array.from({ length: 23 }, (_, i) => i)
+
+    console.log('posts content', postsContent)
+
+    Promise.all(postsContent.map((content) => {
+        return new Promise((resolve, reject) => {
+            sbot.db.publishAs(alice, {
+                type: 'post',
+                text: 'test post ' + content
+            }, (err, msg) => {
+                if (err) return reject(err)
+                resolve(msg)
+            })
+        })
+    }))
+        .then(res => {
+            console.log('res.length', res.length)
+
+            // now call the http API
+
+            t.end()
+        })
+        .catch(err => {
+            t.fail(err)
+            console.log('errrr', err)
+            t.end()
+        })
+
+})
+
 test('get a non-existant feed', t => {
     fetch(BASE_URL + '/feed/' + 'foo')
         .then(res => {
