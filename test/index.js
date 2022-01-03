@@ -231,6 +231,7 @@ test('feeds are paginated', t => {
         })
         .then(res => {
             t.equal(res.length, 10, 'should paginate the results')
+            console.log('***content***', res[0].value)
             t.equal(res[0].value.content.text, 'test post 29',
                 'should return messages in reverse order')
             t.end()
