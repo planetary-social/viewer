@@ -59,7 +59,7 @@ module.exports = function startServer (sbot) {
                 return res.code(404).send('not found')
             }
 
-            const source = sbot.db.query(
+            sbot.db.query(
                 where(
                     and(
                         type('post'),
@@ -68,21 +68,21 @@ module.exports = function startServer (sbot) {
                 ),
                 paginate(10),
                 descending(),
+                // TODO -- look at using `toPullStream` here
                 toCallback((err, _res) => {
                     if (err) {
-                        return console.log('aaaaaaaaaa', err)
+                        return res.send(createError.InternalServerError(err))
                     }
-                    console.log('____res_____', _res.results.length)
-                    var source = S.values(_res.results)
 
                     S(
-                        source,
+                        S.values(_res.results),
 
                         S.map((msg) => {
                             return sbot.threads.thread({
                                 root: msg.key,
                                 allowlist: ['post'],
-                                // threads sorted from most recent to least recent
+                                // threads sorted from most recent to
+                                // least recent
                                 reverse: true, 
                                 // at most 3 messages in each thread
                                 threadMaxSize: 3, 
@@ -92,7 +92,8 @@ module.exports = function startServer (sbot) {
                         S.flatten(),
 
                         S.map(res => {
-                            // return either [post, post, ...] or post (not in array)
+                            // return either [post, post, ...]
+                            // or post (not in array)
                             return res.messages.length > 1 ?
                                 res.messages :
                                 res.messages[0]
@@ -100,13 +101,10 @@ module.exports = function startServer (sbot) {
 
                         S.collect((err, msgs) => {
                             if (err) {
-                                return res.send(createError.InternalServerError(err))
+                                return res.send(
+                                    createError.InternalServerError(err))
                             }
 
-                            console.log('**msgs.length**', msgs.length)
-
-                            // TODO -- can we reverse this in the query?
-                            // need to do this if we send the stream to res
                             res.send(msgs)
                         })
                     )
