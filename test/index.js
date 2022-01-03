@@ -204,9 +204,7 @@ test('get a feed', t => {
 
 test('feeds are paginated', t => {
     // create an array filled with 0...n
-    var postsContent = Array.from({ length: 23 }, (_, i) => i)
-
-    console.log('posts content', postsContent)
+    var postsContent = Array.from({ length: 30 }, (_, i) => i)
 
     Promise.all(postsContent.map((content) => {
         return new Promise((resolve, reject) => {
@@ -220,11 +218,19 @@ test('feeds are paginated', t => {
         })
     }))
         .then(res => {
-            console.log('res.length', res.length)
-
             // now call the http API
+            return fetch(BASE_URL + '/feed/' + 'alice')
+                .then(res => res.ok ? res.json() : res.text())
+                .catch(err => {
+                    t.fail(err)
+                    console.log('oh no', err)
+                    t.end()
+                })
 
-            t.end()
+        })
+        .then(res => {
+            console.log('**feed**', res.length)
+            // console.log('**last**', res[res.length - 1])
         })
         .catch(err => {
             t.fail(err)

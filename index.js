@@ -1,6 +1,6 @@
 const { where,  and, type, contact, author,
     toCallback, descending, toPullStream,
-    batch } = require('ssb-db2/operators')
+    paginate } = require('ssb-db2/operators')
 var createError = require('http-errors')
 const fastify = require('fastify')({
   logger: true
@@ -66,43 +66,54 @@ module.exports = function startServer (sbot) {
                         author(id)
                     )
                 ),
-                batch(20),
+                paginate(10),
                 descending(),
-                toPullStream()
-            )
-
-            S(
-                source,
-
-                S.map((msg) => {
-                    return sbot.threads.thread({
-                        root: msg.key,
-                        allowlist: ['post'],
-                        // threads sorted from most recent to least recent
-                        reverse: true, 
-                        // at most 3 messages in each thread
-                        threadMaxSize: 3, 
-                    })
-                }),
-
-                S.flatten(),
-
-                S.map(res => {
-                    // return either [post, post, ...] or post (not in array)
-                    return res.messages.length > 1 ?
-                        res.messages :
-                        res.messages[0]
-                }),
-
-                S.collect((err, msgs) => {
+                toCallback((err, _res) => {
                     if (err) {
-                        return res.send(createError.InternalServerError(err))
+                        return console.log('aaaaaaaaaa', err)
                     }
-                    // TODO -- can we reverse this in the query?
-                    // need to do this if we send the stream to res
-                    res.send(msgs)
+                    console.log('____res_____', _res.results.length)
+                    var source = S.values(_res.results)
+
+                    S(
+                        source,
+
+                        S.map((msg) => {
+                            return sbot.threads.thread({
+                                root: msg.key,
+                                allowlist: ['post'],
+                                // threads sorted from most recent to least recent
+                                reverse: true, 
+                                // at most 3 messages in each thread
+                                threadMaxSize: 3, 
+                            })
+                        }),
+
+                        S.flatten(),
+
+                        S.map(res => {
+                            // return either [post, post, ...] or post (not in array)
+                            return res.messages.length > 1 ?
+                                res.messages :
+                                res.messages[0]
+                        }),
+
+                        S.collect((err, msgs) => {
+                            if (err) {
+                                return res.send(createError.InternalServerError(err))
+                            }
+
+                            console.log('**msgs.length**', msgs.length)
+
+                            // TODO -- can we reverse this in the query?
+                            // need to do this if we send the stream to res
+                            res.send(msgs)
+                        })
+                    )
+
                 })
             )
+
 
         })
     })
