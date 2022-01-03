@@ -16,6 +16,7 @@ const _ = {
 }
 const rimraf = require('rimraf')
 const after = require('after')
+const series = require('run-series')
 
 const PORT = 8888
 const BASE_URL = 'http://localhost:' + PORT
@@ -206,42 +207,29 @@ test('feeds are paginated', t => {
     // create an array filled with 0...n
     var postsContent = Array.from({ length: 30 }, (_, i) => i)
 
-    // first publish like 30 messages
-    Promise.all(postsContent.map((content) => {
-        return new Promise((resolve, reject) => {
+    series(postsContent.map(content => {
+        return cb => {
             sbot.db.publishAs(alice, {
                 type: 'post',
                 text: 'test post ' + content
-            }, (err, msg) => {
-                if (err) return reject(err)
-                resolve(msg)
+            }, cb)
+        }
+    }), () => {
+        fetch(BASE_URL + '/feed/' + 'alice')
+            .then(res => res.ok ? res.json() : res.text())
+            .then(res => {
+                t.equal(res.length, 10, 'should paginate the results')
+                t.equal(res[0].value.content.text, 'test post 29',
+                    'should return messages in reverse order')
+                t.end()
             })
-        })
-    }))
-        .then(() => {
-            // now call the http API
-            return fetch(BASE_URL + '/feed/' + 'alice')
-                .then(res => res.ok ? res.json() : res.text())
-                .catch(err => {
-                    t.fail(err)
-                    console.log('oh no', err)
-                    t.end()
-                })
+            .catch(err => {
+                t.fail(err)
+                console.log('oh no', err)
+                t.end()
+            })
 
-        })
-        .then(res => {
-            t.equal(res.length, 10, 'should paginate the results')
-            console.log('***content***', res[0].value)
-            t.equal(res[0].value.content.text, 'test post 29',
-                'should return messages in reverse order')
-            t.end()
-        })
-        .catch(err => {
-            t.fail(err)
-            console.log('errrr', err)
-            t.end()
-        })
-
+    })
 })
 
 test('get a non-existant feed', t => {
