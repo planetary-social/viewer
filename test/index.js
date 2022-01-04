@@ -178,6 +178,7 @@ test('get a feed', t => {
                     fetch(BASE_URL + '/feed/' + 'alice')
                         .then(res => res.ok ? res.json() : res.text())
                         .then(res => {
+                            console.log('**res here**', res)
                             var flatMsgs = _.flatten(res)
 
                             var firstMsg = flatMsgs.find(el => {
