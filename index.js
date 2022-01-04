@@ -1,6 +1,6 @@
 const { where,  and, type, contact, author,
     toCallback, descending, toPullStream,
-    paginate } = require('ssb-db2/operators')
+    /*paginate,*/ batch } = require('ssb-db2/operators')
 var createError = require('http-errors')
 const fastify = require('fastify')({
   logger: true
@@ -69,15 +69,14 @@ module.exports = function startServer (sbot) {
                         author(id)
                     )
                 ),
-                paginate(10),
+                batch(10),
                 descending(),
                 toPullStream()
             )
 
             S(
                 source,
-                S.take(1),
-                S.drain(msgs => {
+                S.collect((err, msgs) => {
                     console.log('**msgs**', msgs)
 
                     // now get the threads
@@ -118,6 +117,68 @@ module.exports = function startServer (sbot) {
                 })
             )
 
+
+
+
+            // var source = sbot.db.query(
+            //     where(
+            //         and(
+            //             // slowEqual('value.content.type', 'contact'),
+            //             type('post'),
+            //             author(id)
+            //         )
+            //     ),
+            //     paginate(10),
+            //     descending(),
+            //     toPullStream()
+            // )
+
+            // S(
+            //     source,
+            //     S.take(1),
+            //     S.drain(msgs => {
+            //         console.log('**msgs**', msgs)
+
+            //         // now get the threads
+            //         S(
+            //             S.values(msgs),
+
+            //             S.map((msg) => {
+            //                 return sbot.threads.thread({
+            //                     root: msg.key,
+            //                     allowlist: ['post'],
+            //                     // threads sorted from most recent to
+            //                     // least recent
+            //                     reverse: true, 
+            //                     // at most 3 messages in each thread
+            //                     threadMaxSize: 3, 
+            //                 })
+            //             }),
+
+            //             S.flatten(),
+
+            //             S.map(res => {
+            //                 // return either [post, post, ...]
+            //                 // or post (not in array)
+            //                 return res.messages.length > 1 ?
+            //                     res.messages :
+            //                     res.messages[0]
+            //             }),
+
+            //             S.collect((err, msgs) => {
+            //                 if (err) {
+            //                     return res.send(
+            //                         createError.InternalServerError(err))
+            //                 }
+
+            //                 res.send(msgs)
+            //             })
+            //         )
+            //     })
+            // )
+
+
+            // -----------------------------------------
 
 
             // sbot.db.query(
