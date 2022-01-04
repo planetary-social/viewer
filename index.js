@@ -51,6 +51,8 @@ module.exports = function startServer (sbot) {
                 return res.send(createError.InternalServerError(err))
             }
 
+            console.log('**matches**', matches)
+
             // @TODO -- return a list of id's if there is more than one
             // match
             const id = matches[0] && matches[0].id
@@ -73,6 +75,8 @@ module.exports = function startServer (sbot) {
                     if (err) {
                         return res.send(createError.InternalServerError(err))
                     }
+
+                    console.log('**got paginated posts**', _res.results.length)
 
                     S(
                         S.values(_res.results),
