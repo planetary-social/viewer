@@ -303,7 +303,6 @@ test('get messages for a hashtag', t => {
 
     sbot.db.publishAs(user, content, (err, newMsg) => {
         if (err) return t.fail(err)
-        // console.log('**publish res**', newMsg)
 
         fetch(BASE_URL + '/tag/test')
             .then(res => res.ok ? res.json() : res.text())
