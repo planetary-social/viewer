@@ -405,6 +405,7 @@ test('all done', t => {
 function createSbot ({ DB_PATH }) {
     const sbot = SecretStack({ caps })
         .use(require('ssb-db2'))
+        .use(require('ssb-db2/full-mentions')) // include index
         .use(require('ssb-db2/compat')) // include all compatibility plugins
         .use(require('ssb-db2/about-self'))
         .use(require('ssb-friends'))
