@@ -128,8 +128,8 @@ module.exports = function startServer (sbot) {
                         author(id)
                     )
                 ),
-                paginate(10),
                 descending(),
+                paginate(10),
                 toPullStream()
             )
 
