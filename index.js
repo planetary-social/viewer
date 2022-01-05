@@ -137,8 +137,8 @@ module.exports = function startServer (sbot) {
                 source,
                 S.take(1),
                 S.drain(msgs => {
-                    console.log('***msgs.length***', msgs.length)
-                    console.log('**msgs**', msgs)
+                    // console.log('***msgs.length***', msgs.length)
+                    // console.log('**msgs**', msgs)
 
                     // now get the threads
                     S(
