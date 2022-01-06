@@ -165,8 +165,7 @@ module.exports = function startServer (sbot) {
             sbot.db.onDrain('aboutSelf', () => {
                 const profile = sbot.db.getIndex('aboutSelf').getProfile(id)
 
-                // TODO -- get the blob for avatar image
-                // how to call .get on a peer sbot?
+                // get the blob for avatar image
                 sbot.blobs.has(profile.image, (err, has) => {
                     if (err) return console.log('errrrr', err)
 
@@ -174,10 +173,13 @@ module.exports = function startServer (sbot) {
 
                     // we don't have the blob yet,
                     // so request it from a peer, then return a response
-                    sbot.blobs.want(profile.image, (err) => {
-                        console.log('***got blob***', err)
-                        res.send(profile)
-                    })
+                    var peers = ssb.conn.dbPeers()
+                    console.log('**peers**', peers)
+
+                    // sbot.blobs.want(profile.image, (err) => {
+                    //     console.log('***got blob***', err)
+                    //     res.send(profile)
+                    // })
                 })
             })
         })
