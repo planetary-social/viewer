@@ -173,7 +173,26 @@ module.exports = function startServer (sbot) {
 
                     // we don't have the blob yet,
                     // so request it from a peer, then return a response
-                    var peers = sbot.conn.dbPeers()
+
+                    // need to iterate through the peers, requesting the blob
+                    // but stop iterating when you get it
+                    // var currentPeers = sbot.conn.dbPeers()	
+
+                    // this is something added only in the planetary pub
+                    // TODO -- should iterate through peers
+                    // this is something IPFS would help with b/c
+                    // I think they handle routing requests
+                    var currentPeers = sbot.peers
+                    S(
+                        currentPeers[0].blobs.get(profile.image),
+                        sbot.blobs.add(profile.image, (err, blobId) => {
+                            if (err) return console.log('errrr', err)
+                            // TODO -- could return this before the 
+                            // blob has finished transferring
+                            res.send(profile)
+                        })
+                    )
+
                     console.log('******peers***********', peers)
 
                     // sbot.blobs.want(profile.image, (err) => {
