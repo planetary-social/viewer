@@ -133,7 +133,6 @@ module.exports = function startServer (sbot) {
                 hashtag: '#' + tagName
             }),
             S.collect((err, msgs) => {
-                console.log('in here', err, msgs.length)
                 if (err) return res.send(createError.InternalServerError(err))
                 res.send(msgs)
             })
@@ -186,14 +185,15 @@ module.exports = function startServer (sbot) {
                     S(
                         currentPeers[0].blobs.get(profile.image),
                         sbot.blobs.add(profile.image, (err, blobId) => {
-                            if (err) return console.log('errrr', err)
+                            if (err) return console.log('blob errrr', err)
+                            console.log('***got blob***', blobId)
                             // TODO -- could return this before the 
                             // blob has finished transferring
                             res.send(profile)
                         })
                     )
 
-                    console.log('******peers***********', currentPeers)
+                    console.log('******current peers***********', !!currentPeers[0])
 
                     // sbot.blobs.want(profile.image, (err) => {
                     //     console.log('***got blob***', err)
