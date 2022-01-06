@@ -174,7 +174,7 @@ module.exports = function startServer (sbot) {
                     // we don't have the blob yet,
                     // so request it from a peer, then return a response
                     var peers = sbot.conn.dbPeers()
-                    console.log('**peers**', peers)
+                    console.log('******peers***********', peers)
 
                     // sbot.blobs.want(profile.image, (err) => {
                     //     console.log('***got blob***', err)
