@@ -165,10 +165,7 @@ module.exports = function startServer (sbot) {
             sbot.db.onDrain('aboutSelf', () => {
                 const profile = sbot.db.getIndex('aboutSelf').getProfile(id)
 
-                console.log('*profile***', profile)
-
                 // TODO -- get the blob for avatar image
-                // sbot.blobs.get()
                 // how to call .get on a peer sbot?
                 sbot.blobs.has(profile.image, (err, has) => {
                     if (err) return console.log('errrrr', err)
