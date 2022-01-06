@@ -38,6 +38,8 @@ module.exports = function startServer (sbot) {
 
     fastify.get('/blob/:blobId', (req, res) => {
         var { blobId } = req.params
+        // TODO -- check if we have this blob, and if not, request it
+        // from the pub we're connected with
         var source = sbot.blobs.get(blobId)
         res.send(toStream.source(source))
     })
@@ -61,65 +63,6 @@ module.exports = function startServer (sbot) {
                 return res.code(404).send('not found')
             }
 
-            // var source = sbot.db.query(
-            //     where(
-            //         and(
-            //             // slowEqual('value.content.type', 'contact'),
-            //             type('post'),
-            //             author(id)
-            //         )
-            //     ),
-            //     batch(10),
-            //     descending(),
-            //     toPullStream()
-            // )
-
-            // S(
-            //     source,
-            //     S.collect((err, msgs) => {
-            //         console.log('***msgs***', msgs.length)
-
-            //         // now get the threads
-            //         S(
-            //             S.values(msgs),
-
-            //             S.map((msg) => {
-            //                 return sbot.threads.thread({
-            //                     root: msg.key,
-            //                     allowlist: ['post'],
-            //                     // threads sorted from most recent to
-            //                     // least recent
-            //                     reverse: true, 
-            //                     // at most 3 messages in each thread
-            //                     threadMaxSize: 3, 
-            //                 })
-            //             }),
-
-            //             S.flatten(),
-
-            //             S.map(res => {
-            //                 // return either [post, post, ...]
-            //                 // or post (not in array)
-            //                 return res.messages.length > 1 ?
-            //                     res.messages :
-            //                     res.messages[0]
-            //             }),
-
-            //             S.collect((err, msgs) => {
-            //                 if (err) {
-            //                     return res.send(
-            //                         createError.InternalServerError(err))
-            //                 }
-
-            //                 res.send(msgs)
-            //             })
-            //         )
-            //     })
-            // )
-
-
-
-
             var source = sbot.db.query(
                 where(
                     and(
@@ -135,6 +78,7 @@ module.exports = function startServer (sbot) {
             S(
                 source,
                 S.take(1),
+                // in here, get the blobs that are regerenced by messages
                 S.drain(msgs => {
                     // console.log('***msgs.length***', msgs.length)
                     // console.log('**msgs**', msgs)
@@ -178,71 +122,6 @@ module.exports = function startServer (sbot) {
                     // )
                 })
             )
-
-
-            // -----------------------------------------
-
-
-            // sbot.db.query(
-            //     where(
-            //         and(
-            //             // slowEqual('value.content.type', 'contact'),
-            //             type('post'),
-            //             author(id)
-            //         )
-            //     ),
-            //     paginate(10),
-            //     descending(),
-            //     // TODO -- look at using `toPullStream` here
-            //     toCallback((err, _res) => {
-            //         if (err) {
-            //             return res.send(createError.InternalServerError(err))
-            //         }
-
-            //         console.log('**got paginated posts**', _res.results.length)
-
-            //         S(
-            //             S.values(_res.results),
-
-            //             S.map((msg) => {
-            //                 return sbot.threads.thread({
-            //                     root: msg.key,
-            //                     allowlist: ['post'],
-            //                     // threads sorted from most recent to
-            //                     // least recent
-            //                     reverse: true, 
-            //                     // at most 3 messages in each thread
-            //                     threadMaxSize: 3, 
-            //                 })
-            //             }),
-
-            //             S.flatten(),
-
-            //             S.map(res => {
-            //                 // return either [post, post, ...]
-            //                 // or post (not in array)
-            //                 return res.messages.length > 1 ?
-            //                     res.messages :
-            //                     res.messages[0]
-            //             }),
-
-            //             S.collect((err, msgs) => {
-            //                 if (err) {
-            //                     return res.send(
-            //                         createError.InternalServerError(err))
-            //                 }
-
-            //                 res.send(msgs)
-            //             })
-            //         )
-
-            //     })
-            // )
-
-
-
-
-
         })
     })
 
@@ -285,7 +164,24 @@ module.exports = function startServer (sbot) {
 
             sbot.db.onDrain('aboutSelf', () => {
                 const profile = sbot.db.getIndex('aboutSelf').getProfile(id)
-                res.send(profile)
+
+                console.log('*profile***', profile)
+
+                // TODO -- get the blob for avatar image
+                // sbot.blobs.get()
+                // how to call .get on a peer sbot?
+                sbot.blobs.has(profile.image, (err, has) => {
+                    if (err) return console.log('errrrr', err)
+
+                    if (has) return res.send(profile)
+
+                    // we don't have the blob yet,
+                    // so request it from a peer, then return a response
+                    sbot.blobs.want(profile.image, (err) => {
+                        console.log('***got blob***', err)
+                        res.send(profile)
+                    })
+                })
             })
         })
     })
