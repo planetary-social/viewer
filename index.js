@@ -193,7 +193,7 @@ module.exports = function startServer (sbot) {
                         })
                     )
 
-                    console.log('******peers***********', peers)
+                    console.log('******peers***********', currentPeers)
 
                     // sbot.blobs.want(profile.image, (err) => {
                     //     console.log('***got blob***', err)
