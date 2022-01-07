@@ -167,7 +167,10 @@ module.exports = function startServer (sbot) {
 
                 // get the blob for avatar image
                 sbot.blobs.has(profile.image, (err, has) => {
-                    if (err) return console.log('errrrr', err)
+                    if (err) {
+                        console.log('errrrr', err)
+                        return res.send(createError.InternalServerError(err))
+                    }
 
                     console.log('**has image**', has)
 
@@ -193,8 +196,6 @@ module.exports = function startServer (sbot) {
                     sbot.blobs.want(profile.image, (err, blobId) => {
                         console.log('**wanted**', err, blobId)
                     })
-
-                    // res.send(profile)
 
                     // find someone who has the file
                     waterfall([
