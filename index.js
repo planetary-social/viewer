@@ -8,6 +8,7 @@ const fastify = require('fastify')({
 var S = require('pull-stream')
 var toStream = require('pull-stream-to-stream')
 var waterfall = require('run-waterfall')
+const { cpuUsage } = require('process')
 
 module.exports = function startServer (sbot) {
     fastify.get('/', (_, res) => {
@@ -197,26 +198,15 @@ module.exports = function startServer (sbot) {
                         console.log('**wanted**', err, blobId)
                     })
 
-                    // find someone who has the file
-                    waterfall([
-                        cb => cb(null, false)
-                    ].concat(currentPeers.map(peer => {
-                        return (res, cb) => {
-                            if (res) return cb(null, res)
-                            peer.blobs.has(profile.image, (err, has) => {
-                                if (err) return cb(err)
-                                if (has) return cb(null, peer)
-                                return cb(null, false)
-                            })
-                        }
-                    })), (err, peer) => {
+                    // just as a test
+                    currentPeers[0].blobs.has(profile.image, (err, has) => {
                         if (err) {
-                            return res.send(
-                                createError.InternalServerError(err))
+                            res.send(createError.InternalServerError(err))
                         }
+                        if (has) return res.send(profile)
 
                         S(
-                            peer.blobs.get(profile.image),
+                            currentPeers[0].blobs.get(profile.image),
                             sbot.blobs.add(profile.image, (err, blobId) => {
                                 if (err) {
                                     res.send(createError.InternalServerError(err))
@@ -229,6 +219,39 @@ module.exports = function startServer (sbot) {
                             })
                         )
                     })
+
+                    // find someone who has the file
+                    // waterfall([
+                    //     cb => cb(null, false)
+                    // ].concat(currentPeers.map(peer => {
+                    //     return (res, cb) => {
+                    //         if (res) return cb(null, res)
+                    //         peer.blobs.has(profile.image, (err, has) => {
+                    //             if (err) return cb(err)
+                    //             if (has) return cb(null, peer)
+                    //             return cb(null, false)
+                    //         })
+                    //     }
+                    // })), (err, peer) => {
+                    //     if (err) {
+                    //         return res.send(
+                    //             createError.InternalServerError(err))
+                    //     }
+
+                    //     S(
+                    //         peer.blobs.get(profile.image),
+                    //         sbot.blobs.add(profile.image, (err, blobId) => {
+                    //             if (err) {
+                    //                 res.send(createError.InternalServerError(err))
+                    //                 return console.log('blob errrr', err)
+                    //             }
+                    //             console.log('***got blob***', blobId)
+                    //             // TODO -- could return this before the 
+                    //             // blob has finished transferring
+                    //             res.send(profile)
+                    //         })
+                    //     )
+                    // })
 
 
 
