@@ -80,7 +80,7 @@ module.exports = function startServer (sbot) {
                 S.take(1),
                 // in here, get the blobs that are regerenced by messages
                 S.drain(msgs => {
-                    // console.log('***msgs.length***', msgs.length)
+                    console.log('***got msgs***', msgs.length)
                     // console.log('**msgs**', msgs)
 
                     res.send(msgs)
