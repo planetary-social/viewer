@@ -183,45 +183,41 @@ module.exports = function startServer (sbot) {
                     // TODO -- should iterate through peers
                     // this is something IPFS would help with b/c
                     // I think they handle routing requests
-                    // var currentPeers = sbot.peers
-                    var currentPeers = sbot.conn.dbPeers()	
+                    var currentPeers = sbot.peers
+                    // var currentPeers = sbot.conn.dbPeers()	
 
                     console.log('******current peers***********', !!currentPeers[0])
 
+                    // maybe we need someone following us for this to work?
                     sbot.blobs.want(profile.image, (err, blobId) => {
                         console.log('**wanted**', err, blobId)
                     })
 
-                    res.send(profile)
+                    // res.send(profile)
 
                     // find someone who has the file
-                    // Promise.any(currentPeers.map(peer => {
-                    //     return new Promise((resolve, reject) => {
-                    //         return peer.blobs.has(profile.image, (err) => {
-                    //             if (err) return reject(err)
-                    //             resolve(peer)
-                    //         })
-                    //     })
-                    // }))
-                    //     .then(peer => {
-                    //         // then request the file from them
-                    //         S(
-                    //             peer.blobs.get(profile.image),
-                    //             sbot.blobs.add(profile.image, (err, blobId) => {
-                    //                 if (err) return console.log('blob errrr', err)
-                    //                 console.log('***got blob***', blobId)
-                    //                 // TODO -- could return this before the 
-                    //                 // blob has finished transferring
-                    //                 res.send(profile)
-                    //             })
-                    //         )
-                    //     })
-
-
-                    // sbot.blobs.want(profile.image, (err) => {
-                    //     console.log('***got blob***', err)
-                    //     res.send(profile)
-                    // })
+                    Promise.any(currentPeers.map(peer => {
+                        return new Promise((resolve, reject) => {
+                            return peer.blobs.has(profile.image, (err) => {
+                                if (err) return reject(err)
+                                resolve(peer)
+                            })
+                        })
+                    }))
+                        .then(peer => {
+                            console.log('**got peer***', peer)
+                            // then request the file from them
+                            S(
+                                peer.blobs.get(profile.image),
+                                sbot.blobs.add(profile.image, (err, blobId) => {
+                                    if (err) return console.log('blob errrr', err)
+                                    console.log('***got blob***', blobId)
+                                    // TODO -- could return this before the 
+                                    // blob has finished transferring
+                                    res.send(profile)
+                                })
+                            )
+                        })
                 })
             })
         })
