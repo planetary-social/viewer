@@ -198,9 +198,9 @@ module.exports = function startServer (sbot) {
                     // find someone who has the file
                     Promise.any(currentPeers.map(peer => {
                         return new Promise((resolve, reject) => {
-                            return peer.blobs.has(profile.image, (err) => {
+                            return peer.blobs.has(profile.image, (err, has) => {
                                 if (err) return reject(err)
-                                resolve(peer)
+                                if (has) return resolve(peer)
                             })
                         })
                     }))
