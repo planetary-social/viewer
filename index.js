@@ -7,6 +7,7 @@ const fastify = require('fastify')({
 })
 var S = require('pull-stream')
 var toStream = require('pull-stream-to-stream')
+var waterfall = require('run-waterfall')
 
 module.exports = function startServer (sbot) {
     fastify.get('/', (_, res) => {
@@ -196,28 +197,62 @@ module.exports = function startServer (sbot) {
                     // res.send(profile)
 
                     // find someone who has the file
-                    Promise.any(currentPeers.map(peer => {
-                        return new Promise((resolve, reject) => {
-                            return peer.blobs.has(profile.image, (err, has) => {
-                                if (err) return reject(err)
-                                if (has) return resolve(peer)
+                    waterfall([
+                        cb => cb(null, false)
+                    ].concat(currentPeers.map(peer => {
+                        return (res, cb) => {
+                            if (res) return cb(null, res)
+                            peer.blobs.has(profile.image, (err, has) => {
+                                if (err) return cb(err)
+                                if (has) return cb(null, peer)
+                                return cb(null, false)
                             })
-                        })
-                    }))
-                        .then(peer => {
-                            console.log('**got peer***', peer)
-                            // then request the file from them
-                            S(
-                                peer.blobs.get(profile.image),
-                                sbot.blobs.add(profile.image, (err, blobId) => {
-                                    if (err) return console.log('blob errrr', err)
-                                    console.log('***got blob***', blobId)
-                                    // TODO -- could return this before the 
-                                    // blob has finished transferring
-                                    res.send(profile)
-                                })
-                            )
-                        })
+                        }
+                    })), (err, peer) => {
+                        if (err) {
+                            return res.send(
+                                createError.InternalServerError(err))
+                        }
+
+                        S(
+                            peer.blobs.get(profile.image),
+                            sbot.blobs.add(profile.image, (err, blobId) => {
+                                if (err) {
+                                    res.send(createError.InternalServerError(err))
+                                    return console.log('blob errrr', err)
+                                }
+                                console.log('***got blob***', blobId)
+                                // TODO -- could return this before the 
+                                // blob has finished transferring
+                                res.send(profile)
+                            })
+                        )
+                    })
+
+
+
+                    // Promise.any(currentPeers.map(peer => {
+                    //     return new Promise((resolve, reject) => {
+                    //         return peer.blobs.has(profile.image, (err, has) => {
+                    //             if (err) return reject(err)
+                    //             if (has) return resolve(peer)
+                    //         })
+                    //     })
+                    // }))
+                    //     .then(peer => {
+                    //         console.log('**got peer***', peer)
+                    //         // then request the file from them
+                    //         S(
+                    //             peer.blobs.get(profile.image),
+                    //             sbot.blobs.add(profile.image, (err, blobId) => {
+                    //                 if (err) return console.log('blob errrr', err)
+                    //                 console.log('***got blob***', blobId)
+                    //                 // TODO -- could return this before the 
+                    //                 // blob has finished transferring
+                    //                 res.send(profile)
+                    //             })
+                    //         )
+                    //     })
                 })
             })
         })
