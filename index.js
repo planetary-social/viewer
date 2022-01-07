@@ -198,27 +198,21 @@ module.exports = function startServer (sbot) {
                     })
 
                     // just as a test
-                    currentPeers[0].blobs.has(profile.image, (err, has) => {
-                        if (err) {
-                            console.log('**has err**', err)
-                            res.send(createError.InternalServerError(err))
-                        }
-                        if (has) return res.send(profile)
+                    S(
+                        currentPeers[0].blobs.get(profile.image),
+                        S.through(data => console.log('**data**', data)),
+                        sbot.blobs.add(profile.image, (err, blobId) => {
+                            if (err) {
+                                res.send(createError.InternalServerError(err))
+                                return console.log('**blob errrr**', err)
+                            }
 
-                        S(
-                            currentPeers[0].blobs.get(profile.image),
-                            sbot.blobs.add(profile.image, (err, blobId) => {
-                                if (err) {
-                                    res.send(createError.InternalServerError(err))
-                                    return console.log('**blob errrr**', err)
-                                }
-                                console.log('***got blob***', blobId)
-                                // TODO -- could return this before the 
-                                // blob has finished transferring
-                                res.send(profile)
-                            })
-                        )
-                    })
+                            console.log('***got blob***', blobId)
+                            // TODO -- could return this before the 
+                            // blob has finished transferring
+                            res.send(profile)
+                        })
+                    )
 
                     // find someone who has the file
                     // waterfall([
