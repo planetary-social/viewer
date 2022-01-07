@@ -7,8 +7,7 @@ const fastify = require('fastify')({
 })
 var S = require('pull-stream')
 var toStream = require('pull-stream-to-stream')
-var waterfall = require('run-waterfall')
-const { cpuUsage } = require('process')
+// var waterfall = require('run-waterfall')
 
 module.exports = function startServer (sbot) {
     fastify.get('/', (_, res) => {
@@ -201,6 +200,7 @@ module.exports = function startServer (sbot) {
                     // just as a test
                     currentPeers[0].blobs.has(profile.image, (err, has) => {
                         if (err) {
+                            console.log('**has err**', err)
                             res.send(createError.InternalServerError(err))
                         }
                         if (has) return res.send(profile)
@@ -210,7 +210,7 @@ module.exports = function startServer (sbot) {
                             sbot.blobs.add(profile.image, (err, blobId) => {
                                 if (err) {
                                     res.send(createError.InternalServerError(err))
-                                    return console.log('blob errrr', err)
+                                    return console.log('**blob errrr**', err)
                                 }
                                 console.log('***got blob***', blobId)
                                 // TODO -- could return this before the 
