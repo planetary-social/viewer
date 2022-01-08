@@ -203,6 +203,7 @@ module.exports = function startServer (sbot) {
                         console.log('**wanted**', err, blobId)
                     })
 
+                    // trying cel's pub
                     var addr = 'net:ssb.celehner.com:8008~shs:5XaVcAJ5DklwuuIkjGz4lwm2rOnMHHovhNg7BFFnyJ8='
                     sbot.conn.connect(addr, (err, ssb) => {
                         if (err) {
@@ -212,31 +213,30 @@ module.exports = function startServer (sbot) {
 
                         console.log('**aaaaaaaaaaa**', ssb.blobs)
 
-                        S(
-                            ssb.blobs.get(profile.image),
-                            S.drain(data => {
-                                console.log('**drain**', data)
-                            }, function onEnd (err) {
-                                console.log('***stream end***', err)
-                            })
-                        )
-
-
                         // S(
                         //     ssb.blobs.get(profile.image),
-                        //     S.through(data => console.log('**data**', data)),
-                        //     sbot.blobs.add(profile.image, (err, blobId) => {
-                        //         if (err) {
-                        //             res.send(createError.InternalServerError(err))
-                        //             return console.log('**blob errrr**', err)
-                        //         }
-
-                        //         console.log('***got blob***', blobId)
-                        //         // TODO -- could return this before the 
-                        //         // blob has finished transferring
-                        //         res.send(profile)
+                        //     S.drain(data => {
+                        //         console.log('**drain**', data)
+                        //     }, function onEnd (err) {
+                        //         console.log('***stream end***', err)
                         //     })
                         // )
+
+                        S(
+                            ssb.blobs.get(profile.image),
+                            // S.through(data => console.log('**data**', data)),
+                            sbot.blobs.add(profile.image, (err, blobId) => {
+                                if (err) {
+                                    res.send(createError.InternalServerError(err))
+                                    return console.log('**blob errrr**', err)
+                                }
+
+                                console.log('***got blob***', blobId)
+                                // TODO -- could return this before the 
+                                // blob has finished transferring
+                                res.send(profile)
+                            })
+                        )
                         // peers.push(ssb)
                     })
 
