@@ -203,24 +203,46 @@ module.exports = function startServer (sbot) {
                         console.log('**wanted**', err, blobId)
                     })
 
+                    var addr = 'net:one.planetary.pub:8008~shs:@CIlwTOK+m6v1hT2zUVOCJvvZq7KE/65ErN6yA2yrURY='
+                    sbot.conn.connect(addr, (err, ssb) => {
+                        if (err) return console.log('*errrrr connect*', err)
+                        console.log('**aaaaaaaaaaa**', !!ssb.blobs)
+
+                        S(
+                            ssb.blobs.get(profile.image),
+                            S.through(data => console.log('**data**', data)),
+                            sbot.blobs.add(profile.image, (err, blobId) => {
+                                if (err) {
+                                    res.send(createError.InternalServerError(err))
+                                    return console.log('**blob errrr**', err)
+                                }
+
+                                console.log('***got blob***', blobId)
+                                // TODO -- could return this before the 
+                                // blob has finished transferring
+                                res.send(profile)
+                            })
+                        )
+                        // peers.push(ssb)
+                    })
 
 
                     // just as a test
-                    S(
-                        peer.blobs.get(profile.image),
-                        S.through(data => console.log('**data**', data)),
-                        sbot.blobs.add(profile.image, (err, blobId) => {
-                            if (err) {
-                                res.send(createError.InternalServerError(err))
-                                return console.log('**blob errrr**', err)
-                            }
+                    // S(
+                    //     peer.blobs.get(profile.image),
+                    //     S.through(data => console.log('**data**', data)),
+                    //     sbot.blobs.add(profile.image, (err, blobId) => {
+                    //         if (err) {
+                    //             res.send(createError.InternalServerError(err))
+                    //             return console.log('**blob errrr**', err)
+                    //         }
 
-                            console.log('***got blob***', blobId)
-                            // TODO -- could return this before the 
-                            // blob has finished transferring
-                            res.send(profile)
-                        })
-                    )
+                    //         console.log('***got blob***', blobId)
+                    //         // TODO -- could return this before the 
+                    //         // blob has finished transferring
+                    //         res.send(profile)
+                    //     })
+                    // )
 
 
                     // find someone who has the file
