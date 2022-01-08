@@ -10,6 +10,12 @@ var toStream = require('pull-stream-to-stream')
 // var waterfall = require('run-waterfall')
 
 module.exports = function startServer (sbot) {
+    var peer = null
+    sbot.on('rpc:connect', (ev) => {
+        console.log('***rpc:connect in viewer***', ev.stream.address)
+        peer = ev
+    })
+
     fastify.get('/', (_, res) => {
         res.send(sbot.config.keys.id + ' | ' + process.env.NODE_ENV)
     })
@@ -197,9 +203,11 @@ module.exports = function startServer (sbot) {
                         console.log('**wanted**', err, blobId)
                     })
 
+
+
                     // just as a test
                     S(
-                        currentPeers[0].blobs.get(profile.image),
+                        peer.blobs.get(profile.image),
                         S.through(data => console.log('**data**', data)),
                         sbot.blobs.add(profile.image, (err, blobId) => {
                             if (err) {
@@ -213,6 +221,7 @@ module.exports = function startServer (sbot) {
                             res.send(profile)
                         })
                     )
+
 
                     // find someone who has the file
                     // waterfall([
