@@ -209,12 +209,15 @@ module.exports = function startServer (sbot) {
                             console.log('oh no', err)
                             return console.log('*errrrr connect*', err)
                         }
+
                         console.log('**aaaaaaaaaaa**', ssb.blobs)
 
                         S(
                             ssb.blobs.get(profile.image),
                             S.drain(data => {
                                 console.log('**drain**', data)
+                            }, function onEnd (err) {
+                                console.log('***stream end***', err)
                             })
                         )
 
