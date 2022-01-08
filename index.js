@@ -203,7 +203,7 @@ module.exports = function startServer (sbot) {
                         console.log('**wanted**', err, blobId)
                     })
 
-                    var addr = 'net:one.planetary.pub:8008~shs:@CIlwTOK+m6v1hT2zUVOCJvvZq7KE/65ErN6yA2yrURY='
+                    var addr = 'net:ssb.celehner.com:8008~shs:5XaVcAJ5DklwuuIkjGz4lwm2rOnMHHovhNg7BFFnyJ8='
                     sbot.conn.connect(addr, (err, ssb) => {
                         if (err) {
                             console.log('oh no', err)
