@@ -213,19 +213,27 @@ module.exports = function startServer (sbot) {
 
                         S(
                             ssb.blobs.get(profile.image),
-                            S.through(data => console.log('**data**', data)),
-                            sbot.blobs.add(profile.image, (err, blobId) => {
-                                if (err) {
-                                    res.send(createError.InternalServerError(err))
-                                    return console.log('**blob errrr**', err)
-                                }
-
-                                console.log('***got blob***', blobId)
-                                // TODO -- could return this before the 
-                                // blob has finished transferring
-                                res.send(profile)
+                            S.drain(data => {
+                                console.log('**drain**', data)
                             })
                         )
+
+
+                        // S(
+                        //     ssb.blobs.get(profile.image),
+                        //     S.through(data => console.log('**data**', data)),
+                        //     sbot.blobs.add(profile.image, (err, blobId) => {
+                        //         if (err) {
+                        //             res.send(createError.InternalServerError(err))
+                        //             return console.log('**blob errrr**', err)
+                        //         }
+
+                        //         console.log('***got blob***', blobId)
+                        //         // TODO -- could return this before the 
+                        //         // blob has finished transferring
+                        //         res.send(profile)
+                        //     })
+                        // )
                         // peers.push(ssb)
                     })
 
