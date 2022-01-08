@@ -205,8 +205,11 @@ module.exports = function startServer (sbot) {
 
                     var addr = 'net:one.planetary.pub:8008~shs:@CIlwTOK+m6v1hT2zUVOCJvvZq7KE/65ErN6yA2yrURY='
                     sbot.conn.connect(addr, (err, ssb) => {
-                        if (err) return console.log('*errrrr connect*', err)
-                        console.log('**aaaaaaaaaaa**', !!ssb.blobs)
+                        if (err) {
+                            console.log('oh no', err)
+                            return console.log('*errrrr connect*', err)
+                        }
+                        console.log('**aaaaaaaaaaa**', ssb.blobs)
 
                         S(
                             ssb.blobs.get(profile.image),
