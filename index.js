@@ -7,7 +7,7 @@ const fastify = require('fastify')({
 })
 var S = require('pull-stream')
 var toStream = require('pull-stream-to-stream')
-// var waterfall = require('run-waterfall')
+var getBlob = require('./get-blob')
 
 module.exports = function startServer (sbot) {
     var peer = null
@@ -185,12 +185,7 @@ module.exports = function startServer (sbot) {
                     // we don't have the blob yet,
                     // so request it from a peer, then return a response
 
-                    // need to iterate through the peers, requesting the blob
-                    // but stop iterating when you get it
-                    // var currentPeers = sbot.conn.dbPeers()	
-
                     // this is something added only in the planetary pub
-                    // TODO -- should iterate through peers
                     // this is something IPFS would help with b/c
                     // I think they handle routing requests
                     var currentPeers = sbot.peers
@@ -199,46 +194,85 @@ module.exports = function startServer (sbot) {
                     console.log('******current peers***********', !!currentPeers[0])
 
                     // maybe we need someone following us for this to work?
-                    sbot.blobs.want(profile.image, (err, blobId) => {
-                        console.log('**wanted**', err, blobId)
+                    // sbot.blobs.want(profile.image, (err, blobId) => {
+                    //     console.log('**wanted**', err, blobId)
+                    // })
+
+                    // var addr = 'net:one.planetary.pub:8008~shs:@CIlwTOK+m6v1hT2zUVOCJvvZq7KE/65ErN6yA2yrURY='
+
+                    getBlob(sbot, currentPeers, profile.image, (err) => {
+                        if (err) {
+                            return res.send(
+                                createError.InternalServerError(err))
+                        }
+                        res.send(profile)
                     })
+
+                    // S(
+                    //     S.values(currentPeers),
+                    //     S.asyncMap((peer, cb) => {
+                    //         try {
+                    //             S(
+                    //                 peer.blobs.get(profile.image),
+                    //                 // S.through(data => console.log('**data**', data)),
+                    //                 sbot.blobs.add(profile.image, (err, blobId) => {
+                    //                     if (err) {
+                    //                         // res.send(createError.InternalServerError(err))
+                    //                         console.log('**blob errrr**', err)
+                    //                         return cb(err)
+                    //                     }
+
+                    //                     console.log('***got blob***', blobId)
+                    //                     // TODO -- could return this before the 
+                    //                     // blob has finished transferring
+                    //                     // res.send(profile)
+                    //                     cb(null, profile)
+                    //                 })
+                    //             )
+                    //         } catch(err) {
+
+                    //         }
+                    //     })
+                    // )
+
 
                     // trying cel's pub
-                    var addr = 'net:ssb.celehner.com:8008~shs:5XaVcAJ5DklwuuIkjGz4lwm2rOnMHHovhNg7BFFnyJ8='
-                    sbot.conn.connect(addr, (err, ssb) => {
-                        if (err) {
-                            console.log('oh no', err)
-                            return console.log('*errrrr connect*', err)
-                        }
+                    // var addr = 'net:ssb.celehner.com:8008~shs:5XaVcAJ5DklwuuIkjGz4lwm2rOnMHHovhNg7BFFnyJ8='
+                    // sbot.conn.connect(addr, (err, ssb) => {
+                    //     if (err) {
+                    //         console.log('oh no', err)
+                    //         return console.log('*errrrr connect*', err)
+                    //     }
 
-                        console.log('**aaaaaaaaaaa**', ssb.blobs)
+                    //     console.log('**aaaaaaaaaaa**', ssb.blobs)
 
-                        // S(
-                        //     ssb.blobs.get(profile.image),
-                        //     S.drain(data => {
-                        //         console.log('**drain**', data)
-                        //     }, function onEnd (err) {
-                        //         console.log('***stream end***', err)
-                        //     })
-                        // )
+                    //     // S(
+                    //     //     ssb.blobs.get(profile.image),
+                    //     //     S.drain(data => {
+                    //     //         console.log('**drain**', data)
+                    //     //     }, function onEnd (err) {
+                    //     //         console.log('***stream end***', err)
+                    //     //     })
+                    //     // )
 
-                        S(
-                            ssb.blobs.get(profile.image),
-                            // S.through(data => console.log('**data**', data)),
-                            sbot.blobs.add(profile.image, (err, blobId) => {
-                                if (err) {
-                                    res.send(createError.InternalServerError(err))
-                                    return console.log('**blob errrr**', err)
-                                }
+                    //     S(
+                    //         ssb.blobs.get(profile.image),
+                    //         // S.through(data => console.log('**data**', data)),
+                    //         sbot.blobs.add(profile.image, (err, blobId) => {
+                    //             if (err) {
+                    //                 res.send(createError.InternalServerError(err))
+                    //                 return console.log('**blob errrr**', err)
+                    //             }
 
-                                console.log('***got blob***', blobId)
-                                // TODO -- could return this before the 
-                                // blob has finished transferring
-                                res.send(profile)
-                            })
-                        )
-                        // peers.push(ssb)
-                    })
+                    //             console.log('***got blob***', blobId)
+                    //             // TODO -- could return this before the 
+                    //             // blob has finished transferring
+                    //             res.send(profile)
+                    //         })
+                    //     )
+
+                    //     // peers.push(ssb)
+                    // })
 
 
                     // just as a test
