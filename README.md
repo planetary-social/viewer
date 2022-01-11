@@ -1,5 +1,11 @@
 # planetary viewer
 
+## deprecation
+
+This is deprecated, and is now included in the [pub](https://github.com/planetary-social/planetary-pub) repo.
+
+----------------------------------------------------
+
 A server-side component
 
 This serves data via http from a given sbot
